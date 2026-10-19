@@ -5,8 +5,19 @@ import os
 # NOTE: token ko code me rakhna risky hai — production me env variable use karein.
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8571462279:AAHn9wmFNiububdC_LKlplGNmTfqjQ2vptM")
 
-# Admin Telegram ID (Surendra Chaudhary)
+# Admin Telegram IDs (Surendra: 8828732820, Rahul: 6180387039)
 ADMIN_ID = int(os.getenv("ADMIN_ID") or 8828732820)
+ADMIN_IDS = {8828732820, 6180387039, ADMIN_ID}
+for _raw_id in (os.getenv("ADMIN_IDS") or "").split(","):
+    if _raw_id.strip().isdigit():
+        ADMIN_IDS.add(int(_raw_id.strip()))
+
+
+def is_admin(user_id: int) -> bool:
+    try:
+        return int(user_id) in ADMIN_IDS
+    except (TypeError, ValueError):
+        return False
 
 # Currency & Rewards Configuration (USD based as per client requirements)
 CURRENCY = "USD"

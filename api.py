@@ -121,7 +121,7 @@ def build_state(user_id: int, bot_username: str):
         "tasks": [{k: t[k] for k in ("id", "icon", "title", "url")} for t in active_tasks],
         "requirements": _requirements(u, s, tasks_done),
         "botUsername": bot_username,
-        "isAdmin": user_id == config.ADMIN_ID,
+        "isAdmin": config.is_admin(user_id),
     }
 
 
@@ -238,10 +238,10 @@ async def withdraw(request):
     except Exception as e:
         logger.info(f"User notify failed: {e}")
 
-    if config.ADMIN_ID:
+    for admin_id in config.ADMIN_IDS:
         try:
             await bot.send_message(
-                chat_id=config.ADMIN_ID,
+                chat_id=admin_id,
                 text=(
                     f"🔔 <b>New Withdrawal Request (#{w_id})</b>\n\n"
                     f"👤 User: <b>{html.escape(first_name)}</b> (<code>{user_id}</code>)\n"
@@ -257,7 +257,7 @@ async def withdraw(request):
                 parse_mode="HTML",
             )
         except Exception as e:
-            logger.error(f"Admin notify error: {e}")
+            logger.error(f"Admin notify error ({admin_id}): {e}")
 
     data = build_state(user_id, request.app["bot_username"])
     data.update({"withdrawalId": w_id})
@@ -279,7 +279,7 @@ _ADMIN_KEY_MAP = {
 
 async def admin_settings(request):
     user_id, _, body = await _auth(request)
-    if user_id != config.ADMIN_ID:
+    if not config.is_admin(user_id):
         return _json({"ok": False, "error": "forbidden"}, 403)
     incoming = body.get("settings") or {}
     for js_key, db_key in _ADMIN_KEY_MAP.items():

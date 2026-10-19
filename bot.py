@@ -258,15 +258,15 @@ async def _send_db_backup(bot, chat_id: int):
 
 
 async def backup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != config.ADMIN_ID:
+    if not config.is_admin(update.effective_user.id):
         await update.message.reply_text("⛔ Not authorized.")
         return
-    await _send_db_backup(context.bot, config.ADMIN_ID)
+    await _send_db_backup(context.bot, update.effective_user.id)
 
 
 async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    if user_id != config.ADMIN_ID:
+    if not config.is_admin(user_id):
         await update.message.reply_text("⛔ You are not authorized to view the admin panel.")
         return
     text, kb = _admin_panel()
@@ -276,7 +276,8 @@ async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Admin Callback Handler
 async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    if update.effective_user.id != config.ADMIN_ID:
+    admin_uid = update.effective_user.id
+    if not config.is_admin(admin_uid):
         await query.answer("⛔ Not authorized", show_alert=True)
         return
     await query.answer()
@@ -311,7 +312,7 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text("📋 <b>Pending Withdrawal Requests:</b>", parse_mode="HTML")
         for p in payouts:
             await context.bot.send_message(
-                chat_id=config.ADMIN_ID,
+                chat_id=admin_uid,
                 text=(
                     f"#{p['id']} • <b>${p['amount']:.2f}</b> • {html.escape(p['method'] or '')}\n"
                     f"👤 {html.escape(p.get('first_name') or '')} (<code>{p['user_id']}</code>)\n"
@@ -330,13 +331,13 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         context.user_data["awaiting_setting"] = key
         await context.bot.send_message(
-            chat_id=config.ADMIN_ID,
+            chat_id=admin_uid,
             text=f"✏️ <b>{key}</b> ki nayi value bhejein (current: <code>{db.get_setting(key)}</code>)\n/cancel se cancel karein.",
             parse_mode="HTML",
         )
 
     elif data == "adm_backup_db":
-        await _send_db_backup(context.bot, config.ADMIN_ID)
+        await _send_db_backup(context.bot, admin_uid)
 
     elif data == "adm_refresh":
         text, kb = _admin_panel()
@@ -345,7 +346,7 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def admin_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Admin ne 'Set ...' button dabaya ho to agla text message us setting ki value hai."""
-    if update.effective_user.id != config.ADMIN_ID:
+    if not config.is_admin(update.effective_user.id):
         return
     key = context.user_data.get("awaiting_setting")
     if not key:
