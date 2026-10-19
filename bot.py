@@ -1,5 +1,27 @@
+import os
+import subprocess
 import sys
+
 print("=== [RENDER BOOT] Starting bot.py with Python:", sys.executable, flush=True)
+
+# If Render is running 'python3 -u bot.py' as the Build Command (before WEB_CONCURRENCY is set in Deploy phase),
+# install requirements.txt and exit 0 so the Render build succeeds automatically.
+if (os.path.exists("/opt/render") or os.environ.get("RENDER")) and not os.environ.get("WEB_CONCURRENCY"):
+    print("=== [RENDER BUILD] 'bot.py' invoked during Build Phase -> Installing requirements.txt ===", flush=True)
+    req_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "requirements.txt")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", req_file])
+    print("=== [RENDER BUILD] Dependencies installed successfully! Exiting build phase with 0. ===", flush=True)
+    sys.exit(0)
+
+# Fallback: if running in runtime phase without dependencies installed yet, install them on the fly
+try:
+    import aiohttp  # noqa: F401
+    import telegram  # noqa: F401
+except ModuleNotFoundError:
+    print("=== [RENDER RUNTIME] Installing missing dependencies from requirements.txt ===", flush=True)
+    req_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "requirements.txt")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", req_file])
+
 import asyncio
 import logging
 import html
