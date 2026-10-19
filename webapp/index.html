@@ -1149,10 +1149,18 @@
     let isAdmin = false;
     let lastAdAt = 0;
 
+    try {
+        const cached = JSON.parse(localStorage.getItem("payjust_state_v1") || "null");
+        if (cached && cached.user) {
+            userState = { ...userState, ...cached.user };
+            appSettings = { ...appSettings, ...cached.settings };
+        }
+    } catch (e) {}
+
     async function api(path, payload = {}) {
         if (!API_BASE) API_BASE = DEFAULT_API;
         let lastErr = null;
-        for (let attempt = 0; attempt < 3; attempt++) {
+        for (let attempt = 0; attempt < 5; attempt++) {
             try {
                 const res = await fetch(`${API_BASE}${path}`, {
                     method: "POST",
@@ -1161,7 +1169,7 @@
                 });
                 let data = {};
                 try { data = await res.json(); } catch (e) {}
-                if (res.status >= 502 && res.status <= 504 && attempt < 2) {
+                if (res.status >= 500 && attempt < 4) {
                     await new Promise(r => setTimeout(r, 1200 * (attempt + 1)));
                     continue;
                 }
@@ -1174,7 +1182,7 @@
                     API_BASE = DEFAULT_API;
                     localStorage.setItem("payjust_api", DEFAULT_API);
                 }
-                if (attempt < 2) {
+                if (attempt < 4) {
                     await new Promise(r => setTimeout(r, 1200 * (attempt + 1)));
                 }
             }
@@ -1195,35 +1203,31 @@
         }
         botUsername = data.botUsername || botUsername;
         isAdmin = !!data.isAdmin;
+        try {
+            localStorage.setItem("payjust_state_v1", JSON.stringify({ user: userState, settings: appSettings }));
+        } catch (e) {}
         document.getElementById("adminFloatBtn").style.display = isAdmin ? "flex" : "none";
         renderUI();
         initAdsgramController();
     }
 
+    let _retryTimer = null;
     async function loadState(fromRetry = false) {
-        if (!initData) {
-            showApiError("Telegram ke andar open karein",
-                "Ye app sirf Telegram bot ke 'Open App' button se chalta hai. Bot me /start bhej kar button dabayein.");
-            return;
-        }
-        if (!API_BASE) {
-            showApiError("Server URL missing",
-                "App ko backend ka address nahi mila. Bot me /start bhej kar naye 'Open App' button se kholein. (Admin: config.py me API_PUBLIC_URL set karein.)");
-            return;
-        }
+        if (!initData) return;
+        if (!API_BASE) API_BASE = DEFAULT_API;
+        clearTimeout(_retryTimer);
         try {
             const data = await api("/api/state");
             hideApiError();
             applyState(data);
             if (fromRetry) showToast("✅ Connected");
         } catch (err) {
-            console.warn("state error", err);
-            if (err?.status === 401) {
-                showApiError("Session expired", "App band karke bot se dobara open karein.");
-            } else {
-                showApiError("Server se connect nahi ho paya",
-                    "Bot server abhi offline lag raha hai. Thodi der baad Retry karein.");
+            console.warn("state sync warning", err);
+            hideApiError();
+            if (fromRetry) {
+                showToast("⏳ Reconnecting to server...");
             }
+            _retryTimer = setTimeout(() => loadState(false), 4000);
         }
     }
 
@@ -1300,7 +1304,7 @@
             const row = document.createElement("div");
             row.className = "req-row";
             const st = String(w.status || "pending").toLowerCase();
-            const isPaid = st === "paid";
+            const isPaid = st === "paid" || st === "approved";
             const isRejected = st === "rejected";
             const iconCls = isPaid ? "icon-done" : "icon-pending";
             const iconTxt = isPaid ? "✓" : (isRejected ? "✕" : "⏳");
@@ -1690,8 +1694,14 @@
     }
 
     // App wapas foreground me aaye to fresh state (referrals etc.)
+    let _visTimer = null;
     document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible" && initData && API_BASE) loadState();
+        if (document.visibilityState === "visible" && initData && API_BASE && !isAdPlaying) {
+            clearTimeout(_visTimer);
+            _visTimer = setTimeout(() => {
+                if (!isAdPlaying) loadState();
+            }, 1200);
+        }
     });
 
     // Initial render + load

@@ -88,6 +88,16 @@ def init_db():
             created_at REAL
         )
     """)
+    for col, col_type in [
+        ("method", "TEXT DEFAULT 'USDT'"),
+        ("payment_details", "TEXT"),
+        ("status", "TEXT DEFAULT 'PENDING'"),
+        ("created_at", "REAL"),
+    ]:
+        try:
+            cursor.execute(f"ALTER TABLE withdrawals ADD COLUMN {col} {col_type}")
+        except sqlite3.OperationalError:
+            pass
 
     # App Settings table for Admin Panel dynamic control
     cursor.execute("""
@@ -349,12 +359,20 @@ def get_withdrawal(withdrawal_id: int) -> Optional[Dict[str, Any]]:
 
 def get_user_withdrawals(user_id: int, limit: int = 5) -> List[Dict[str, Any]]:
     conn = get_connection()
-    rows = conn.execute(
-        "SELECT id, amount, method, status, created_at FROM withdrawals WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
-        (user_id, limit),
-    ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    try:
+        rows = conn.execute(
+            "SELECT id, amount, method, payment_details AS address, status, created_at FROM withdrawals WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
+            (user_id, limit),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    except sqlite3.OperationalError:
+        rows = conn.execute(
+            "SELECT id, amount, payment_details AS address, status, created_at FROM withdrawals WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
+            (user_id, limit),
+        ).fetchall()
+        return [{**dict(r), "method": "USDT"} for r in rows]
+    finally:
+        conn.close()
 
 
 def get_pending_withdrawals(limit: int = 10) -> List[Dict[str, Any]]:
