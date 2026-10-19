@@ -29,8 +29,6 @@ MANDATORY_CHANNELS = []
 # to join verify hoga; warna sirf link open karke claim hoga.
 TASKS = [
     {"id": 1, "icon": "📢", "title": "Join Official Telegram", "url": "https://t.me/Payjust_bot", "chat": None},
-    {"id": 2, "icon": "▶️", "title": "Subscribe to YouTube", "url": "https://youtube.com", "chat": None},
-    {"id": 3, "icon": "🐦", "title": "Follow on Twitter / X", "url": "https://twitter.com", "chat": None},
     {"id": 4, "icon": "👥", "title": "Join Partner Group", "url": "https://t.me/Payjust_bot", "chat": None},
 ]
 

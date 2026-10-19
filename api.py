@@ -71,11 +71,17 @@ async def _auth(request: web.Request):
 
 
 # ---------------- HELPERS ----------------
+def _active_tasks_done(user_id: int):
+    active_ids = {t["id"] for t in config.TASKS}
+    return [tid for tid in db.get_completed_tasks(user_id) if tid in active_ids]
+
+
 def _requirements(user_row, settings, tasks_done):
+    done_set = set(tasks_done)
     return {
         "balance": user_row["balance"] >= settings["min_withdrawal"],
         "invites": user_row["total_referrals"] >= settings["required_invites"],
-        "tasks": len(tasks_done) >= len(config.TASKS),
+        "tasks": all(t["id"] in done_set for t in config.TASKS),
         "ads": user_row["ads_watched_total"] >= settings["required_ads"],
     }
 
@@ -83,7 +89,7 @@ def _requirements(user_row, settings, tasks_done):
 def build_state(user_id: int, bot_username: str):
     u = db.get_user(user_id)
     s = db.get_typed_settings()
-    tasks_done = db.get_completed_tasks(user_id)
+    tasks_done = _active_tasks_done(user_id)
     return {
         "ok": True,
         "user": {

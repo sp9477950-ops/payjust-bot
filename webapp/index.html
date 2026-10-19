@@ -958,7 +958,7 @@
                         <div class="req-status-icon icon-done" id="reqIcon3">✓</div>
                         <div>
                             <div class="req-name">Complete All Tasks</div>
-                            <div class="req-detail">Tasks done: <span id="reqTasksDoneText">0</span> / <span id="reqTasksTotalText">4</span></div>
+                            <div class="req-detail">Tasks done: <span id="reqTasksDoneText">0</span> / <span id="reqTasksTotalText">2</span></div>
                         </div>
                     </div>
                     <div class="badge-pill badge-done" id="reqBadge3">Done</div>
@@ -1159,9 +1159,13 @@
         if (!data || !data.user) return;
         userState = { ...userState, ...data.user };
         appSettings = { ...appSettings, ...data.settings };
-        tasks = data.tasks || tasks;
+        tasks = (data.tasks || tasks).filter(t => !/youtube|twitter/i.test(t.title || ""));
         adsgramCfg = data.adsgram || adsgramCfg;
         requirements = data.requirements || requirements;
+        if (tasks.length) {
+            const doneSet = new Set(userState.tasksDone || []);
+            requirements.tasks = tasks.every(t => doneSet.has(t.id));
+        }
         botUsername = data.botUsername || botUsername;
         isAdmin = !!data.isAdmin;
         document.getElementById("adminFloatBtn").style.display = isAdmin ? "flex" : "none";
@@ -1234,8 +1238,9 @@
         document.getElementById("reqTargetAdsText").textContent = appSettings.requiredAds;
         document.getElementById("reqUserAdsText").textContent = userState.totalAdsWatched;
 
-        const totalTasks = tasks.length || 4;
-        const doneTasks = (userState.tasksDone || []).length;
+        const totalTasks = tasks.length || 2;
+        const activeTaskIds = new Set(tasks.map(t => t.id));
+        const doneTasks = (userState.tasksDone || []).filter(id => !activeTaskIds.size || activeTaskIds.has(id)).length;
         document.getElementById("reqTasksDoneText").textContent = doneTasks;
         const tasksTotalEl = document.getElementById("reqTasksTotalText");
         if (tasksTotalEl) tasksTotalEl.textContent = totalTasks;

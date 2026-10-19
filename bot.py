@@ -166,12 +166,14 @@ async def handle_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
     u = update.effective_user
     db.ensure_user(u.id, u.first_name or "User", u.username or "")
     row = db.get_user(u.id)
+    active_ids = {t["id"] for t in config.TASKS}
+    done_cnt = sum(1 for tid in db.get_completed_tasks(u.id) if tid in active_ids)
     await update.message.reply_text(
         f"💰 <b>Your Wallet</b>\n\n"
         f"Balance: <b>${row['balance']:.2f}</b>\n"
         f"Ads watched: <b>{row['ads_watched_total']}</b> (today {db.ads_watched_today(u.id)})\n"
         f"Friends invited: <b>{row['total_referrals']}</b>\n"
-        f"Tasks done: <b>{len(db.get_completed_tasks(u.id))}/{len(config.TASKS)}</b>",
+        f"Tasks done: <b>{done_cnt}/{len(config.TASKS)}</b>",
         parse_mode="HTML",
     )
 
