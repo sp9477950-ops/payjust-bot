@@ -12,4 +12,4 @@ services:
       - key: ADMIN_ID
         value: "8828732820"
       - key: WEBAPP_URL
-        value: https://pay-just.netlify.app
+        value: https://payjust-bot.onrender.com/app

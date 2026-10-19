@@ -60,14 +60,18 @@ API_PORT = int(os.getenv("PORT") or os.getenv("API_PORT") or 8080)
 # Render sets RENDER_EXTERNAL_URL automatically (e.g. https://payjust-backend.onrender.com)
 API_PUBLIC_URL = os.getenv("API_PUBLIC_URL", os.getenv("RENDER_EXTERNAL_URL", "https://payjust-bot.onrender.com")).rstrip("/")
 
-# Mini App / Web App URL
-_WEBAPP_BASE = os.getenv("WEBAPP_URL", "https://pay-just.netlify.app")
+# Mini App / Web App URL (served directly from Render /app so Netlify limits/404 never affect the bot)
+_raw_webapp = os.getenv("WEBAPP_URL", "").strip()
+if not _raw_webapp or "netlify.app" in _raw_webapp:
+    _WEBAPP_BASE = f"{API_PUBLIC_URL}/app"
+else:
+    _WEBAPP_BASE = _raw_webapp
 
 
 def build_webapp_url() -> str:
-    """WebApp URL with API endpoint passed as query param (so Netlify redeploy na karna pade jab API URL badle)."""
+    """WebApp URL with API endpoint passed as query param."""
     from urllib.parse import urlencode, quote
-    params = {"v": "9"}
+    params = {"v": "10"}
     if API_PUBLIC_URL:
         params["api"] = API_PUBLIC_URL
     sep = "&" if "?" in _WEBAPP_BASE else "?"
