@@ -1087,7 +1087,7 @@
 
     // API URL bot se query param (?api=...) me aata hai. Ek baar mil gaya to yaad rakhte hain.
     // Agar aap API ka permanent URL jaante hain to DEFAULT_API me daal dein.
-    const DEFAULT_API = "";
+    const DEFAULT_API = "https://payjust-bot.onrender.com";
     const urlParams = new URLSearchParams(window.location.search);
     const apiParam = urlParams.get("api");
     if (apiParam) localStorage.setItem("payjust_api", apiParam);

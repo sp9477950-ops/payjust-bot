@@ -49,7 +49,7 @@ API_HOST = os.getenv("API_HOST", "0.0.0.0")
 API_PORT = int(os.getenv("PORT") or os.getenv("API_PORT") or 8080)
 # Public HTTPS URL jahan ye API reachable hai (Render/Railway/VPS ya cloudflared tunnel).
 # Render sets RENDER_EXTERNAL_URL automatically (e.g. https://payjust-backend.onrender.com)
-API_PUBLIC_URL = os.getenv("API_PUBLIC_URL", os.getenv("RENDER_EXTERNAL_URL", "")).rstrip("/")
+API_PUBLIC_URL = os.getenv("API_PUBLIC_URL", os.getenv("RENDER_EXTERNAL_URL", "https://payjust-bot.onrender.com")).rstrip("/")
 
 # Mini App / Web App URL
 _WEBAPP_BASE = os.getenv("WEBAPP_URL", "https://pay-just.netlify.app")
