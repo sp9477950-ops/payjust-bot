@@ -212,26 +212,34 @@ async def handle_about(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def _admin_panel():
     stats = db.get_stats_summary()
     settings = db.get_all_settings()
+    ads_today = stats["ads_today"]
+    total_ads = stats["total_ads"]
+    # Adsgram average publisher CPM (~$1.50 per 1,000 views = $0.0015/ad)
+    est_today_usd = ads_today * 0.0015
+    est_total_usd = total_ads * 0.0015
+    ch_url = settings.get("task_1_url") or "https://t.me/Payjust_bot"
+    grp_url = settings.get("task_4_url") or "https://t.me/Payjust_bot"
+
     text = (
         f"👑 <b>Payjust Admin Panel</b>\n\n"
-        f"📊 <b>System Statistics:</b>\n"
+        f"💵 <b>Your Original Ad Revenue (Adsgram):</b>\n"
+        f"• Today's Ads: <b>{ads_today} views</b> (~<b>${est_today_usd:.4f} USDT</b>)\n"
+        f"• Total Ads: <b>{total_ads} views</b> (~<b>${est_total_usd:.4f} USDT</b>)\n"
+        f"<i>(Exact real-time USDT payout niche 📊 Adsgram Dashboard button me dekhein)</i>\n\n"
+        f"📊 <b>Bot Users & Virtual Wallet Stats:</b>\n"
         f"• Total Users: <b>{stats['total_users']}</b>\n"
-        f"• Total Balance in System: <b>${stats['total_balance']}</b>\n"
-        f"• Total Ads Watched: <b>{stats['total_ads']}</b> (today {stats['ads_today']})\n"
+        f"• Users App Balance Total: <b>${stats['total_balance']}</b> <i>(virtual)</i>\n"
         f"• Pending Withdrawals: <b>{stats['pending_withdrawals']}</b>\n\n"
-        f"⚙️ <b>Live Settings:</b>\n"
-        f"• Ad Reward: <b>${settings.get('ad_reward')}</b>\n"
-        f"• Referral Reward: <b>${settings.get('referral_reward')}</b>\n"
-        f"• Task Reward: <b>${settings.get('task_reward')}</b>\n"
-        f"• Daily Ad Limit: <b>{settings.get('daily_ad_limit')}</b>\n"
-        f"• Min Withdrawal: <b>${settings.get('min_withdrawal')}</b>\n"
-        f"• Required Invites: <b>{settings.get('required_invites')}</b>\n"
-        f"• Required Ads: <b>{settings.get('required_ads')}</b>\n"
-        f"• Adsgram Block: <b>{settings.get('adsgram_block_id')}</b> "
-        f"({'TEST/DEBUG' if config.ADSGRAM_DEBUG else 'LIVE'})\n"
-        f"• API: <code>{config.API_PUBLIC_URL or 'NOT SET ⚠️'}</code>\n"
+        f"⚙️ <b>Live App Settings:</b>\n"
+        f"• Ad Reward: <b>${settings.get('ad_reward')}</b> | Daily Limit: <b>{settings.get('daily_ad_limit')}</b>\n"
+        f"• Ref Reward: <b>${settings.get('referral_reward')}</b> | Task Reward: <b>${settings.get('task_reward')}</b>\n"
+        f"• Min Withdraw: <b>${settings.get('min_withdrawal')}</b> ({settings.get('required_invites')} invites, {settings.get('required_ads')} ads)\n"
+        f"• Adsgram Block: <b>{settings.get('adsgram_block_id')}</b> ({'TEST' if config.ADSGRAM_DEBUG else 'LIVE'})\n"
+        f"• Channel Task: <code>{html.escape(ch_url)}</code>\n"
+        f"• Group Task: <code>{html.escape(grp_url)}</code>\n"
     )
     kb = InlineKeyboardMarkup([
+        [InlineKeyboardButton("📊 Check Real USDT on Adsgram Dashboard", url="https://partner.adsgram.ai")],
         [InlineKeyboardButton("📋 View Pending Payouts", callback_data="adm_view_payouts")],
         [InlineKeyboardButton("✏️ Set Ad Reward", callback_data="adm_set_ad_reward"), InlineKeyboardButton("✏️ Set Ref Reward", callback_data="adm_set_referral_reward")],
         [InlineKeyboardButton("✏️ Set Task Reward", callback_data="adm_set_task_reward"), InlineKeyboardButton("✏️ Set Daily Limit", callback_data="adm_set_daily_ad_limit")],
@@ -280,10 +288,10 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not config.is_admin(admin_uid):
         await query.answer("⛔ Not authorized", show_alert=True)
         return
-    await query.answer()
     data = query.data
 
     if data.startswith("adm_app_") or data.startswith("adm_rej_"):
+        await query.answer()
         approve = data.startswith("adm_app_")
         try:
             w_id = int(data.split("_")[2])
@@ -307,9 +315,9 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == "adm_view_payouts":
         payouts = db.get_pending_withdrawals(limit=10)
         if not payouts:
-            await query.edit_message_text("✅ No pending withdrawal requests right now.")
+            await query.answer("✅ Abhi koi pending withdrawal request nahi hai!", show_alert=True)
             return
-        await query.edit_message_text("📋 <b>Pending Withdrawal Requests:</b>", parse_mode="HTML")
+        await query.answer()
         for p in payouts:
             await context.bot.send_message(
                 chat_id=admin_uid,
@@ -326,22 +334,29 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
     elif data.startswith("adm_set_"):
+        await query.answer()
         key = data[len("adm_set_"):]
         if key not in db.ALLOWED_SETTINGS:
             return
         context.user_data["awaiting_setting"] = key
+        hint = "Link ya @username bhejein (e.g. https://t.me/mychannel)" if key.endswith("_url") else "Nayi number value bhejein"
         await context.bot.send_message(
             chat_id=admin_uid,
-            text=f"✏️ <b>{key}</b> ki nayi value bhejein (current: <code>{db.get_setting(key)}</code>)\n/cancel se cancel karein.",
+            text=f"✏️ <b>{key}</b>: {hint}\nCurrent: <code>{html.escape(str(db.get_setting(key)))}</code>\n/cancel se cancel karein.",
             parse_mode="HTML",
         )
 
     elif data == "adm_backup_db":
+        await query.answer("💾 Uploading DB backup...")
         await _send_db_backup(context.bot, admin_uid)
 
     elif data == "adm_refresh":
         text, kb = _admin_panel()
-        await query.edit_message_text(text, reply_markup=kb, parse_mode="HTML")
+        try:
+            await query.edit_message_text(text, reply_markup=kb, parse_mode="HTML")
+            await query.answer("✅ Stats refreshed!")
+        except Exception:
+            await query.answer("✅ Stats already up to date!")
 
 
 async def admin_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -357,12 +372,15 @@ async def admin_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
         value = db.ALLOWED_SETTINGS[key](raw)
         if isinstance(value, (int, float)) and (not math.isfinite(value) or value < 0):
             raise ValueError
+        if key.endswith("_url"):
+            value = db._normalize_tg_url(str(value))
     except ValueError:
-        await update.message.reply_text("⚠️ Invalid value. Number bhejein (ya /cancel).")
+        await update.message.reply_text("⚠️ Invalid value. Sahi number bhejein (ya /cancel).")
         return
     db.set_setting(key, value)
     context.user_data.pop("awaiting_setting", None)
-    await update.message.reply_text(f"✅ <b>{key}</b> = <code>{value}</code> saved.", parse_mode="HTML")
+    text, kb = _admin_panel()
+    await update.message.reply_text(f"✅ <b>{key}</b> = <code>{html.escape(str(value))}</code> saved!\n\n{text}", reply_markup=kb, parse_mode="HTML")
 
 
 async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE):

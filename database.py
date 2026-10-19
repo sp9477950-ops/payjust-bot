@@ -205,12 +205,25 @@ def get_typed_settings() -> Dict[str, Any]:
     return out
 
 
+def _normalize_tg_url(url: str) -> str:
+    u = (url or "").strip()
+    if not u:
+        return "https://t.me/Payjust_bot"
+    if u.startswith("@"):
+        return f"https://t.me/{u[1:]}"
+    if u.startswith("t.me/"):
+        return f"https://{u}"
+    if not u.startswith(("http://", "https://")):
+        return f"https://{u}"
+    return u
+
+
 def get_active_tasks() -> List[Dict[str, Any]]:
     s = get_all_settings()
     out = []
     for t in config.TASKS:
         tid = t["id"]
-        url = (s.get(f"task_{tid}_url") or t.get("url") or "https://t.me/Payjust_bot").strip()
+        url = _normalize_tg_url(s.get(f"task_{tid}_url") or t.get("url") or "https://t.me/Payjust_bot")
         chat = (s.get(f"task_{tid}_chat") or t.get("chat") or "").strip() or None
         out.append({
             "id": tid,
