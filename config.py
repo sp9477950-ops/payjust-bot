@@ -6,7 +6,7 @@ import os
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8571462279:AAHn9wmFNiububdC_LKlplGNmTfqjQ2vptM")
 
 # Admin Telegram ID (Surendra Chaudhary)
-ADMIN_ID = int(os.getenv("ADMIN_ID", "8828732820"))
+ADMIN_ID = int(os.getenv("ADMIN_ID") or 8828732820)
 
 # Currency & Rewards Configuration (USD based as per client requirements)
 CURRENCY = "USD"
@@ -46,7 +46,7 @@ ADSGRAM_REWARD_SECRET = os.getenv("ADSGRAM_REWARD_SECRET", "change-me-secret")
 
 # Backend API server (Mini App isi se balance/ads/withdraw sync karta hai)
 API_HOST = os.getenv("API_HOST", "0.0.0.0")
-API_PORT = int(os.getenv("PORT", os.getenv("API_PORT", "8080")))
+API_PORT = int(os.getenv("PORT") or os.getenv("API_PORT") or 8080)
 # Public HTTPS URL jahan ye API reachable hai (Render/Railway/VPS ya cloudflared tunnel).
 # Render sets RENDER_EXTERNAL_URL automatically (e.g. https://payjust-backend.onrender.com)
 API_PUBLIC_URL = os.getenv("API_PUBLIC_URL", os.getenv("RENDER_EXTERNAL_URL", "")).rstrip("/")

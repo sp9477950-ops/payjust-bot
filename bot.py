@@ -348,10 +348,6 @@ async def run():
 
     await app.initialize()
     bot_username = app.bot.username
-
-    # Chat ke niche permanent "Open App" menu button
-    try:
-        await app.bot.set_chat_menu_button(
     # 1. Start API server FIRST so Render port detection passes immediately
     api_app = create_api_app(app.bot, bot_username)
     runner = web.AppRunner(api_app)
