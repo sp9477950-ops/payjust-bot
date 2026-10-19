@@ -121,7 +121,7 @@ def build_state(user_id: int, bot_username: str):
         "tasks": [{k: t[k] for k in ("id", "icon", "title", "url")} for t in active_tasks],
         "requirements": _requirements(u, s, tasks_done),
         "botUsername": bot_username,
-        "isAdmin": config.is_admin(user_id),
+        "isAdmin": False,
     }
 
 

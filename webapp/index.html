@@ -1202,11 +1202,11 @@
             requirements.tasks = tasks.every(t => doneSet.has(t.id));
         }
         botUsername = data.botUsername || botUsername;
-        isAdmin = !!data.isAdmin;
+        isAdmin = false;
         try {
             localStorage.setItem("payjust_state_v1", JSON.stringify({ user: userState, settings: appSettings }));
         } catch (e) {}
-        document.getElementById("adminFloatBtn").style.display = isAdmin ? "flex" : "none";
+        document.getElementById("adminFloatBtn").style.display = "none";
         renderUI();
         initAdsgramController();
     }
