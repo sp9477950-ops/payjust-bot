@@ -58,7 +58,7 @@ _WEBAPP_BASE = os.getenv("WEBAPP_URL", "https://pay-just.netlify.app")
 def build_webapp_url() -> str:
     """WebApp URL with API endpoint passed as query param (so Netlify redeploy na karna pade jab API URL badle)."""
     from urllib.parse import urlencode, quote
-    params = {"v": "8"}
+    params = {"v": "9_live"}
     if API_PUBLIC_URL:
         params["api"] = API_PUBLIC_URL
     sep = "&" if "?" in _WEBAPP_BASE else "?"
