@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Payjust +$ | Earn Money Daily</title>
+    <meta name="description" content="Payjust Telegram Mini App - watch ads, complete tasks and invite friends to earn rewards.">
+
+
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Block Netlify HUD Badge -->
+    <script>
+        (function() {
+            function removeBadge() {
+                const b1 = document.getElementById("nl-badge-frame");
+                if (b1) b1.remove();
+                const b2 = document.getElementById("nl-hud-frame");
+                if (b2) b2.remove();
+                document.querySelectorAll('iframe[title*="Netlify"], iframe[id*="nl-"], script[data-nf-variant]').forEach(el => el.remove());
+            }
+            try {
+                const observer = new MutationObserver(removeBadge);
+                observer.observe(document.documentElement, { childList: true, subtree: true });
+            } catch(e){}
+            window.addEventListener("DOMContentLoaded", removeBadge);
+            window.addEventListener("load", removeBadge);
+            setInterval(removeBadge, 150);
+        })();
+    </script>
+
+    <!-- Adsgram SDK -->
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* Completely hide Netlify badge / HUD */
+        #nl-badge-frame,
+        #nl-hud-frame,
+        iframe[title*="Netlify"],
+        iframe[title*="Powered by Netlify"],
+        iframe[id*="nl-"],
+        [data-netlify-hud],
+        .netlify-badge {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            position: absolute !important;
+            left: -9999px !important;
+            z-index: -999999 !important;
+        }
+
+        :root {
+            --bg-body: #0d111a;
+            --card-dark: #151a26;
+            --card-border: rgba(255, 255, 255, 0.08);
+            --gold-gradient: linear-gradient(135deg, #2b2216 0%, #1d1815 100%);
+            --gold-border: rgba(245, 197, 66, 0.28);
+            --gold-text: #f5c542;
+            --accent-green: #10b981;
+            --accent-green-bg: rgba(16, 185, 129, 0.12);
+            --accent-red: #ef4444;
+            --accent-red-bg: rgba(239, 68, 68, 0.12);
+            --accent-amber: #f59e0b;
+            --accent-amber-bg: rgba(245, 158, 11, 0.12);
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 14px 14px 90px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* ================= 1. HEADER HERO CARD (MATCHING SCREENSHOT 2) ================= */
+        .hero-card {
+            background: var(--gold-gradient);
+            border: 1px solid var(--gold-border);
+            border-radius: 24px;
+            padding: 22px 20px 16px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            margin-bottom: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .balance-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--gold-text);
+            text-transform: uppercase;
+        }
+        .balance-value {
+            font-size: 38px;
+            font-weight: 800;
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            margin: 2px 0 4px;
+        }
+        .balance-sub {
+            font-size: 12px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .avatar-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #38bdf8;
+            color: #042f2c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+        }
+        .user-meta {
+            text-align: right;
+        }
+        .user-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .user-id {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        /* Chip Navigation under Header */
+        .chip-nav {
+            display: flex;
+            gap: 8px;
+            margin-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 14px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .chip-nav::-webkit-scrollbar { display: none; }
+        .chip-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            padding: 8px 14px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .chip-btn.active {
+            background: #ffffff;
+            color: #0f172a;
+            border-color: #ffffff;
+            font-weight: 700;
+        }
+
+        /* ================= 2. PAGE SECTIONS ================= */
+        .page-section {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+        .page-section.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            margin-bottom: 14px;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+        }
+        .section-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        /* ================= WATCH ADS CARD (SCREENSHOT 2) ================= */
+        .ad-action-card {
+            background: #ffffff;
+            border-radius: 22px;
+            padding: 20px;
+            color: #0f172a;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            margin-bottom: 14px;
+            position: relative;
+        }
+        .ad-main-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+        }
+        .play-icon-box {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #111827;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+            transition: transform 0.15s;
+        }
+        .play-icon-box:active { transform: scale(0.92); }
+        .play-triangle {
+            width: 0;
+            height: 0;
+            border-top: 9px solid transparent;
+            border-bottom: 9px solid transparent;
+            border-left: 15px solid #ffffff;
+            margin-left: 3px;
+        }
+        .ad-text-content {
+            flex: 1;
+        }
+        .ad-cta-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .ad-cta-sub {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .ad-reward-pill {
+            background: #1e293b;
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        /* Progress Bar inside Ad Card */
+        .progress-container {
+            margin-top: 16px;
+            background: #f1f5f9;
+            height: 7px;
+            border-radius: 99px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #eab308);
+            border-radius: 99px;
+            width: 33%;
+            transition: width 0.4s ease;
+        }
+        .progress-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        .status-ready {
+            color: #059669;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            display: inline-block;
+        }
+        .limit-counter {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        /* Bottom Two Stats Cards (Screenshot 2) */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-box {
+            background: var(--card-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 16px 14px;
+        }
+        .stat-box-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .stat-box-val {
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            margin-top: 4px;
+        }
+
+        /* ================= 3. WITHDRAWAL PAGE (SCREENSHOT 3) ================= */
+        .withdraw-card {
+            background: var(--card-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 22px;
+            padding: 20px 16px;
+            margin-bottom: 16px;
+        }
+        .method-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .method-tab {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 12px 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .method-tab.active {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #38bdf8;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+        .method-icon { font-size: 20px; margin-bottom: 4px; }
+        .method-title { font-size: 11px; font-weight: 700; color: #ffffff; }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .form-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 14px 16px;
+            color: #ffffff;
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: #38bdf8; }
+        .form-help {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .btn-submit-withdraw {
+            width: 100%;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s;
+        }
+        .btn-submit-withdraw:active { transform: scale(0.98); }
+
+        /* ================= 4. WITHDRAWAL REQUIREMENTS (SCREENSHOT 3) ================= */
+        .req-box {
+            background: var(--card-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 22px;
+            padding: 20px 16px;
+            margin-top: 16px;
+        }
+        .req-header-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .req-icon-title {
+            font-size: 18px;
+        }
+        .req-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+        .req-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .req-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .req-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 16px;
+            padding: 14px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .req-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .req-status-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+        .icon-done {
+            background: var(--accent-green-bg);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .icon-pending {
+            background: var(--accent-amber-bg);
+            color: var(--accent-amber);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .req-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .req-detail {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .badge-pill {
+            padding: 4px 10px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .badge-done {
+            background: var(--accent-green-bg);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .badge-pending {
+            background: var(--accent-red-bg);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* ================= 5. TASKS LIST ================= */
+        .task-card {
+            background: var(--card-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .task-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .task-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .task-title {
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .task-reward {
+            font-size: 12px;
+            color: var(--gold-text);
+            font-weight: 700;
+            margin-top: 2px;
+        }
+        .btn-task-claim {
+            background: #38bdf8;
+            color: #042f2c;
+            border: none;
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .btn-task-claim.claimed {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        /* ================= 6. INVITE FRIENDS SECTION ================= */
+        .invite-box {
+            background: var(--card-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 20px 16px;
+            text-align: center;
+        }
+        .invite-link-field {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #38bdf8;
+            margin: 14px 0;
+            word-break: break-all;
+        }
+        .btn-copy {
+            background: #ffffff;
+            color: #0f172a;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 20px;
+            font-size: 14px;
+            font-weight: 800;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* ================= 7. ADMIN FLOATING BUTTON & PANEL ================= */
+        .admin-float-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #f59e0b;
+            color: #000;
+            font-weight: 800;
+            font-size: 13px;
+            padding: 10px 16px;
+            border-radius: 99px;
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5);
+            display: none;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .admin-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .admin-modal-card {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 24px 20px;
+            width: 100%;
+            max-width: 440px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Video Ad Modal */
+        .video-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(12px);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .video-modal-card {
+            background: linear-gradient(145deg, #182032 0%, #0d121f 100%);
+            border: 1px solid rgba(245, 197, 66, 0.4);
+            border-radius: 24px;
+            padding: 24px 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(245, 197, 66, 0.15);
+            text-align: center;
+        }
+        .video-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .video-badge {
+            background: #f59e0b;
+            color: #000;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 5px 12px;
+            border-radius: 99px;
+            letter-spacing: 0.5px;
+        }
+        .video-timer-badge {
+            background: rgba(255, 255, 255, 0.1);
+            color: #f1f5f9;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 99px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .video-screen-box {
+            background: radial-gradient(circle at center, #1e293b 0%, #0b0f19 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            padding: 30px 20px;
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+        .video-screen-anim {
+            font-size: 52px;
+            animation: pulseCoin 1.2s infinite ease-in-out;
+            margin-bottom: 14px;
+        }
+        @keyframes pulseCoin {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15) rotate(6deg); }
+        }
+        .video-screen-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #f8fafc;
+            margin-bottom: 6px;
+        }
+        .video-screen-desc {
+            font-size: 13px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        .video-progress-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 99px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        .video-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #f59e0b, #10b981);
+            border-radius: 99px;
+            transition: width 0.1s linear;
+        }
+        .video-sub-note {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px; left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1e293b;
+            border: 1px solid #38bdf8;
+            color: #ffffff;
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            white-space: nowrap;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- ================= 1. HERO TOTAL BALANCE CARD (SCREENSHOT 2) ================= -->
+    <div class="hero-card">
+        <div class="hero-top-row">
+            <div>
+                <div class="balance-label">TOTAL BALANCE</div>
+                <div class="balance-value">$<span id="balanceDisplay">0.00</span></div>
+                <div class="balance-sub">Available to withdraw</div>
+            </div>
+            <div class="user-pill">
+                <div class="avatar-circle" id="userAvatar">PJ</div>
+                <div class="user-meta">
+                    <div class="user-name" id="userName">Loading...</div>
+                    <div class="user-id" id="userIdText">ID: —</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Horizontal Chips inside Header -->
+        <div class="chip-nav">
+            <button class="chip-btn active" data-sec="ads" onclick="switchSection('ads')">Watch Ads</button>
+            <button class="chip-btn" data-sec="tasks" onclick="switchSection('tasks')">Complete Tasks</button>
+            <button class="chip-btn" data-sec="refer" onclick="switchSection('refer')">Invite Friends</button>
+            <button class="chip-btn" data-sec="withdraw" onclick="switchSection('withdraw')">Withdraw</button>
+        </div>
+    </div>
+
+    <!-- ================= 2. WATCH ADS SECTION (SCREENSHOT 2) ================= -->
+    <div class="page-section active" id="sec-ads">
+        <div class="section-header">
+            <div class="section-title">Watch Ads & Earn</div>
+            <div class="section-desc">Complete and watch a short video ads and earn $<span id="adRewardText">0.30</span></div>
+        </div>
+
+        <!-- Big Ad Action Card -->
+        <div class="ad-action-card">
+            <div class="ad-main-row" id="watchAdBtn" onclick="watchRewardedAd()">
+                <div class="play-icon-box">
+                    <div class="play-triangle"></div>
+                </div>
+                <div class="ad-text-content">
+                    <div class="ad-cta-title">Watch Ad</div>
+                    <div class="ad-cta-sub">Complete video to earn instantly</div>
+                </div>
+                <div class="ad-reward-pill">+$<span id="adPillText">0.30</span></div>
+            </div>
+
+            <!-- Progress line -->
+            <div class="progress-container">
+                <div class="progress-bar-fill" id="adProgressFill" style="width: 0%;"></div>
+            </div>
+            <div class="progress-label-row">
+                <div class="status-ready">
+                    <span class="status-dot"></span> Ready to earn
+                </div>
+                <div class="limit-counter"><span id="adsWatchedToday">0</span> / <span id="adDailyLimit">15</span> today</div>
+            </div>
+        </div>
+
+        <!-- Bottom Stats Row -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-box-label">TOTAL WATCHED</div>
+                <div class="stat-box-val"><span id="totalAdsWatched">0</span> ads</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-label">TOTAL EARNED</div>
+                <div class="stat-box-val">$<span id="totalEarnedFromAds">0.00</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 3. COMPLETE TASKS SECTION ================= -->
+    <div class="page-section" id="sec-tasks">
+        <div class="section-header">
+            <div class="section-title">Complete Tasks</div>
+            <div class="section-desc">Join partner channels and earn instant rewards</div>
+        </div>
+
+        <div id="tasksList">
+            <div class="task-card"><div class="task-left"><div class="task-icon">⏳</div><div><div class="task-title">Loading tasks...</div></div></div></div>
+        </div>
+    </div>
+
+    <!-- ================= 4. INVITE FRIENDS SECTION ================= -->
+    <div class="page-section" id="sec-refer">
+        <div class="section-header">
+            <div class="section-title">Invite Friends</div>
+            <div class="section-desc">Earn $<span id="refRewardRate">0.75</span> for every invited friend</div>
+        </div>
+
+        <div class="invite-box">
+            <div style="font-size: 32px; margin-bottom: 8px;">🎁</div>
+            <div style="font-size: 16px; font-weight: 800;">Your Referral Link</div>
+            <div class="invite-link-field" id="refLinkText">Loading...</div>
+            <button class="btn-copy" id="copyInviteBtn" onclick="copyReferralLink()">📋 Copy Invite Link</button>
+            <button class="btn-copy" id="shareInviteBtn" style="background:#38bdf8; margin-top:8px;" onclick="shareReferralLink()">📤 Share on Telegram</button>
+        </div>
+    </div>
+
+    <!-- ================= 5. WITHDRAWAL SECTION (SCREENSHOT 3) ================= -->
+    <div class="page-section" id="sec-withdraw">
+        <div class="section-header">
+            <div class="section-title">Withdraw Funds</div>
+            <div class="section-desc">Direct payouts to Crypto, PayPal or Mobile</div>
+        </div>
+
+        <div class="withdraw-card">
+            <!-- Method Tabs -->
+            <div class="method-tabs">
+                <div class="method-tab active" onclick="selectMethod('USDT TRC20', 'Enter your USDT TRC20 wallet address', 'e.g. TXyz...abc', this)">
+                    <div class="method-icon">₮</div>
+                    <div class="method-title">USDT TRC20</div>
+                </div>
+                <div class="method-tab" onclick="selectMethod('PayPal', 'Enter your PayPal email address', 'e.g. name@paypal.com', this)">
+                    <div class="method-icon">🅿</div>
+                    <div class="method-title">PayPal</div>
+                </div>
+                <div class="method-tab" onclick="selectMethod('Mobile Top-Up', 'Enter mobile number & operator', 'e.g. 9876543210 (Jio/Airtel)', this)">
+                    <div class="method-icon">📱</div>
+                    <div class="method-title">Mobile Top-Up</div>
+                </div>
+            </div>
+
+            <!-- Amount Input -->
+            <div class="form-group">
+                <label class="form-label">AMOUNT</label>
+                <input class="form-input" id="withdrawAmountInput" type="number" step="0.01" placeholder="Enter amount (e.g. 10.00)">
+                <span class="form-help">Available balance: $<span id="availBalHint">0.00</span> • Min $<span id="minWithHint">10.00</span></span>
+            </div>
+
+            <!-- Wallet Address Input -->
+            <div class="form-group">
+                <label class="form-label" id="walletFieldLabel">WALLET ADDRESS</label>
+                <input class="form-input" id="walletAddressInput" type="text" placeholder="e.g. TXyz...abc">
+                <span class="form-help" id="walletFieldHelp">Enter your USDT TRC20 wallet address</span>
+            </div>
+
+            <button class="btn-submit-withdraw" onclick="submitWithdrawalRequest()">
+                🚀 Submit Withdrawal Request
+            </button>
+        </div>
+
+        <!-- ================= 4 WITHDRAWAL REQUIREMENTS (SCREENSHOT 3) ================= -->
+        <div class="req-box">
+            <div class="req-header-row">
+                <div class="req-icon-title">📋</div>
+                <div>
+                    <div class="req-title">Withdrawal Requirements</div>
+                    <div class="req-sub">Complete the steps below to unlock your withdrawal.</div>
+                </div>
+            </div>
+
+            <div class="req-list">
+                <!-- Requirement 1: Min Balance -->
+                <div class="req-item" id="reqItem1">
+                    <div class="req-item-left">
+                        <div class="req-status-icon icon-done" id="reqIcon1">✓</div>
+                        <div>
+                            <div class="req-name">Minimum $<span id="reqMinBalText">10.00</span> Balance</div>
+                            <div class="req-detail">Your balance: $<span id="reqUserBalText">0.00</span></div>
+                        </div>
+                    </div>
+                    <div class="badge-pill badge-done" id="reqBadge1">Done</div>
+                </div>
+
+                <!-- Requirement 2: 5 Invites -->
+                <div class="req-item" id="reqItem2">
+                    <div class="req-item-left">
+                        <div class="req-status-icon icon-pending" id="reqIcon2">!</div>
+                        <div>
+                            <div class="req-name">Invite <span id="reqTargetInvText">5</span> Friends</div>
+                            <div class="req-detail">Friends invited: <span id="reqUserInvText">0</span></div>
+                        </div>
+                    </div>
+                    <div class="badge-pill badge-pending" id="reqBadge2">2 / 5</div>
+                </div>
+
+                <!-- Requirement 3: Complete All Tasks -->
+                <div class="req-item" id="reqItem3">
+                    <div class="req-item-left">
+                        <div class="req-status-icon icon-done" id="reqIcon3">✓</div>
+                        <div>
+                            <div class="req-name">Complete All Tasks</div>
+                            <div class="req-detail">Tasks done: <span id="reqTasksDoneText">0</span> / <span id="reqTasksTotalText">4</span></div>
+                        </div>
+                    </div>
+                    <div class="badge-pill badge-done" id="reqBadge3">Done</div>
+                </div>
+
+                <!-- Requirement 4: Watch 80 Ads -->
+                <div class="req-item" id="reqItem4">
+                    <div class="req-item-left">
+                        <div class="req-status-icon icon-done" id="reqIcon4">✓</div>
+                        <div>
+                            <div class="req-name">Watch <span id="reqTargetAdsText">80</span> Ads</div>
+                            <div class="req-detail">Ads watched: <span id="reqUserAdsText">0</span></div>
+                        </div>
+                    </div>
+                    <div class="badge-pill badge-done" id="reqBadge4">Done</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Admin Floating Button -->
+<div class="admin-float-btn" id="adminFloatBtn" onclick="openAdminModal()">
+    ⚙️ Admin Settings
+</div>
+
+<!-- Admin Modal -->
+<div class="admin-modal" id="adminModal">
+    <div class="admin-modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div style="font-size:18px; font-weight:800; color:#f59e0b;">👑 Admin Settings Panel</div>
+            <div style="font-size:22px; cursor:pointer;" onclick="closeAdminModal()">✕</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Ad Reward ($)</label>
+            <input class="form-input" id="admAdReward" type="number" step="0.01" value="0.30">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Daily Ad Limit</label>
+            <input class="form-input" id="admDailyLimit" type="number" value="15">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Referral Reward ($)</label>
+            <input class="form-input" id="admRefReward" type="number" step="0.01" value="0.75">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Min Withdrawal ($)</label>
+            <input class="form-input" id="admMinWithdraw" type="number" step="0.01" value="10.00">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Required Invites Count</label>
+            <input class="form-input" id="admReqInvites" type="number" value="5">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Required Ads Count</label>
+            <input class="form-input" id="admReqAds" type="number" value="80">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Adsgram Block ID</label>
+            <input class="form-input" id="admBlockId" type="text" value="53853" placeholder="Adsgram block ID">
+        </div>
+
+        <button class="btn-copy" style="background:#f59e0b; color:#000; margin-top:10px;" onclick="saveAdminSettings()">
+            💾 Save All Settings
+        </button>
+        <button class="btn-copy" style="background:#475569; color:#fff; margin-top:8px;" onclick="toggleErudaConsole()">
+            🛠 Toggle Mobile DevTools (Eruda)
+        </button>
+    </div>
+</div>
+
+<!-- Adsgram Status Modal (real reason dikhata hai, fake reward nahi deta) -->
+<div class="video-modal" id="adStatusModal" style="display:none;">
+    <div class="video-modal-card">
+        <div class="video-top-bar">
+            <span class="video-badge" style="background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444;">⚠️ AD STATUS</span>
+            <span class="video-timer-badge" onclick="closeAdStatusModal()" style="cursor:pointer;">✕ Close</span>
+        </div>
+        <div class="video-screen-box" style="padding:16px; text-align:left;">
+            <div style="font-weight:700; font-size:15px; margin-bottom:6px; color:#f59e0b;" id="adStatusTitle">No ads available right now</div>
+            <div style="font-size:13px; color:#94a3b8; line-height:1.5; margin-bottom:14px;" id="adStatusMsg"></div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button class="btn-copy" style="background:#10b981; color:#fff;" onclick="closeAdStatusModal(); watchRewardedAd();">
+                    🔄 Try Again
+                </button>
+                <button class="btn-copy" style="background:#334155; color:#cbd5e1;" onclick="closeAdStatusModal()">
+                    Close
+                </button>
+            </div>
+        </div>
+        <div class="video-sub-note">💡 Ads availability aapke region aur time par depend karti hai. Thodi der baad try karein.</div>
+    </div>
+</div>
+
+<!-- Connection error overlay -->
+<div class="video-modal" id="apiErrorModal" style="display:none;">
+    <div class="video-modal-card">
+        <div class="video-screen-box" style="padding:18px; text-align:left;">
+            <div style="font-weight:800; font-size:16px; margin-bottom:8px; color:#ef4444;" id="apiErrorTitle">Server se connect nahi ho paya</div>
+            <div style="font-size:13px; color:#94a3b8; line-height:1.5; margin-bottom:14px;" id="apiErrorMsg"></div>
+            <button class="btn-copy" style="background:#3b82f6; color:#fff;" onclick="loadState(true)">🔄 Retry</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    // ==========================================
+    // 1. TELEGRAM INIT + API CONFIG
+    // ==========================================
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+        tg.ready();
+        tg.expand();
+        try { tg.setHeaderColor("#0d111a"); tg.setBackgroundColor("#0d111a"); } catch (e) {}
+    }
+
+    const initData = tg?.initData || "";
+    const tgUser = tg?.initDataUnsafe?.user;
+    const userId = tgUser ? tgUser.id : null;
+    const firstName = tgUser?.first_name || (tgUser?.username ? "@" + tgUser.username : "Guest User");
+
+    // API URL bot se query param (?api=...) me aata hai. Ek baar mil gaya to yaad rakhte hain.
+    // Agar aap API ka permanent URL jaante hain to DEFAULT_API me daal dein.
+    const DEFAULT_API = "";
+    const urlParams = new URLSearchParams(window.location.search);
+    const apiParam = urlParams.get("api");
+    if (apiParam) localStorage.setItem("payjust_api", apiParam);
+    const API_BASE = (apiParam || localStorage.getItem("payjust_api") || DEFAULT_API).replace(/\/+$/, "");
+
+    // Header user info
+    document.getElementById("userName").textContent = firstName;
+    document.getElementById("userIdText").textContent = userId ? `ID: ${userId}` : "ID: Guest";
+    const avatarEl = document.getElementById("userAvatar");
+    if (tgUser?.photo_url) {
+        const img = document.createElement("img");
+        img.src = tgUser.photo_url;
+        img.alt = "Avatar";
+        img.style.cssText = "width:100%;height:100%;border-radius:50%;object-fit:cover;";
+        avatarEl.replaceChildren(img);
+    } else if (tgUser?.first_name) {
+        const initials = ((tgUser.first_name[0] || "") + (tgUser.last_name ? tgUser.last_name[0] : "")).toUpperCase();
+        avatarEl.textContent = initials || "PJ";
+    }
+
+    // ==========================================
+    // 2. STATE (server = single source of truth)
+    // ==========================================
+    let appSettings = {
+        adReward: 0.30, dailyAdLimit: 15, refReward: 0.75, taskReward: 0.10,
+        minWithdrawal: 10.00, requiredInvites: 5, requiredAds: 80, adCooldown: 15
+    };
+    let userState = {
+        balance: 0, adsWatchedToday: 0, totalAdsWatched: 0, totalEarnedFromAds: 0,
+        friendsInvited: 0, tasksDone: [], withdrawals: []
+    };
+    let tasks = [];
+    let adsgramCfg = { blockId: null, debug: false, useRewardUrl: false };
+    let requirements = { balance: false, invites: false, tasks: false, ads: false };
+    let botUsername = "Payjust_bot";
+    let isAdmin = false;
+    let lastAdAt = 0;
+
+    async function api(path, payload = {}) {
+        if (!API_BASE) throw { error: "no_api" };
+        const res = await fetch(`${API_BASE}${path}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ initData, ...payload })
+        });
+        let data = {};
+        try { data = await res.json(); } catch (e) {}
+        if (!res.ok && !data.user) throw { status: res.status, ...data };
+        return data;
+    }
+
+    function applyState(data) {
+        if (!data || !data.user) return;
+        userState = { ...userState, ...data.user };
+        appSettings = { ...appSettings, ...data.settings };
+        tasks = data.tasks || tasks;
+        adsgramCfg = data.adsgram || adsgramCfg;
+        requirements = data.requirements || requirements;
+        botUsername = data.botUsername || botUsername;
+        isAdmin = !!data.isAdmin;
+        document.getElementById("adminFloatBtn").style.display = isAdmin ? "flex" : "none";
+        renderUI();
+        initAdsgramController();
+    }
+
+    async function loadState(fromRetry = false) {
+        if (!initData) {
+            showApiError("Telegram ke andar open karein",
+                "Ye app sirf Telegram bot ke 'Open App' button se chalta hai. Bot me /start bhej kar button dabayein.");
+            return;
+        }
+        if (!API_BASE) {
+            showApiError("Server URL missing",
+                "App ko backend ka address nahi mila. Bot me /start bhej kar naye 'Open App' button se kholein. (Admin: config.py me API_PUBLIC_URL set karein.)");
+            return;
+        }
+        try {
+            const data = await api("/api/state");
+            hideApiError();
+            applyState(data);
+            if (fromRetry) showToast("✅ Connected");
+        } catch (err) {
+            console.warn("state error", err);
+            if (err?.status === 401) {
+                showApiError("Session expired", "App band karke bot se dobara open karein.");
+            } else {
+                showApiError("Server se connect nahi ho paya",
+                    "Bot server abhi offline lag raha hai. Thodi der baad Retry karein.");
+            }
+        }
+    }
+
+    function showApiError(title, msg) {
+        document.getElementById("apiErrorTitle").textContent = title;
+        document.getElementById("apiErrorMsg").textContent = msg;
+        document.getElementById("apiErrorModal").style.display = "flex";
+    }
+    function hideApiError() {
+        document.getElementById("apiErrorModal").style.display = "none";
+    }
+
+    // ==========================================
+    // 3. RENDER UI
+    // ==========================================
+    const money = (n) => Number(n || 0).toFixed(2);
+
+    function renderUI() {
+        document.getElementById("balanceDisplay").textContent = money(userState.balance);
+        document.getElementById("availBalHint").textContent = money(userState.balance);
+        document.getElementById("reqUserBalText").textContent = money(userState.balance);
+
+        document.getElementById("adRewardText").textContent = money(appSettings.adReward);
+        document.getElementById("adPillText").textContent = money(appSettings.adReward);
+        document.getElementById("adsWatchedToday").textContent = userState.adsWatchedToday;
+        document.getElementById("adDailyLimit").textContent = appSettings.dailyAdLimit;
+        document.getElementById("totalAdsWatched").textContent = userState.totalAdsWatched;
+        document.getElementById("totalEarnedFromAds").textContent = money(userState.totalEarnedFromAds);
+
+        const pct = Math.min((userState.adsWatchedToday / Math.max(appSettings.dailyAdLimit, 1)) * 100, 100);
+        document.getElementById("adProgressFill").style.width = `${pct}%`;
+
+        document.getElementById("refRewardRate").textContent = money(appSettings.refReward);
+        document.getElementById("reqUserInvText").textContent = userState.friendsInvited;
+        document.getElementById("reqTargetInvText").textContent = appSettings.requiredInvites;
+
+        document.getElementById("minWithHint").textContent = money(appSettings.minWithdrawal);
+        document.getElementById("reqMinBalText").textContent = money(appSettings.minWithdrawal);
+        document.getElementById("reqTargetAdsText").textContent = appSettings.requiredAds;
+        document.getElementById("reqUserAdsText").textContent = userState.totalAdsWatched;
+
+        const totalTasks = tasks.length || 4;
+        const doneTasks = (userState.tasksDone || []).length;
+        document.getElementById("reqTasksDoneText").textContent = doneTasks;
+        const tasksTotalEl = document.getElementById("reqTasksTotalText");
+        if (tasksTotalEl) tasksTotalEl.textContent = totalTasks;
+
+        updateReqStatus(1, requirements.balance, "Done", `$${money(userState.balance)}`);
+        updateReqStatus(2, requirements.invites, "Done", `${userState.friendsInvited} / ${appSettings.requiredInvites}`);
+        updateReqStatus(3, requirements.tasks, "Done", `${doneTasks} / ${totalTasks}`);
+        updateReqStatus(4, requirements.ads, "Done", `${userState.totalAdsWatched} / ${appSettings.requiredAds}`);
+
+        document.getElementById("refLinkText").textContent = `https://t.me/${botUsername}?start=${userId || ""}`;
+
+        renderAdStatus();
+        renderTasks();
+    }
+
+    function renderAdStatus() {
+        const el = document.querySelector(".status-ready");
+        if (!el) return;
+        const limitHit = userState.adsWatchedToday >= appSettings.dailyAdLimit;
+        el.innerHTML = limitHit
+            ? `<span class="status-dot" style="background:#ef4444"></span> <span style="color:#dc2626">Daily limit reached</span>`
+            : `<span class="status-dot"></span> Ready to earn`;
+    }
+
+    function updateReqStatus(reqNum, isDone, doneText, pendingText) {
+        const icon = document.getElementById(`reqIcon${reqNum}`);
+        const badge = document.getElementById(`reqBadge${reqNum}`);
+        if (isDone) {
+            icon.className = "req-status-icon icon-done";
+            icon.textContent = "✓";
+            badge.className = "badge-pill badge-done";
+            badge.textContent = doneText;
+        } else {
+            icon.className = "req-status-icon icon-pending";
+            icon.textContent = "!";
+            badge.className = "badge-pill badge-pending";
+            badge.textContent = pendingText;
+        }
+    }
+
+    // ==========================================
+    // 4. ADSGRAM (production-correct flow)
+    // ==========================================
+    let adController = null;
+    let adControllerKey = "";
+    let isAdPlaying = false;
+
+    function initAdsgramController() {
+        if (!adsgramCfg.blockId) return;
+        const key = `${adsgramCfg.blockId}|${adsgramCfg.debug}`;
+        if (adController && adControllerKey === key) return; // ek hi baar init
+        if (!window.Adsgram) {
+            console.warn("Adsgram SDK not loaded (adblock / network?)");
+            return;
+        }
+        try {
+            const opts = { blockId: String(adsgramCfg.blockId) };
+            if (adsgramCfg.debug) {
+                opts.debug = true;
+                opts.debugBannerType = "RewardedVideo";
+            }
+            adController = window.Adsgram.init(opts);
+            adControllerKey = key;
+            console.log("[Adsgram] init", opts);
+        } catch (e) {
+            console.error("[Adsgram Init Error]", e);
+            adController = null;
+        }
+    }
+
+    async function watchRewardedAd() {
+        if (isAdPlaying) return;
+        if (userState.adsWatchedToday >= appSettings.dailyAdLimit) {
+            showToast(`⏳ Daily limit (${appSettings.dailyAdLimit} ads) reached! Come back tomorrow.`);
+            return;
+        }
+        const wait = Math.ceil((lastAdAt + appSettings.adCooldown * 1000 - Date.now()) / 1000);
+        if (wait > 0) {
+            showToast(`⏳ Agla ad ${wait}s baad`);
+            return;
+        }
+        if (!adController) initAdsgramController();
+        if (!adController) {
+            showAdStatusModal("Ad SDK load nahi hua", "Internet check karein ya adblock/VPN band karke app dobara kholein.");
+            return;
+        }
+
+        isAdPlaying = true;
+        try {
+            const result = await adController.show();
+            // Rewarded: promise tabhi resolve hota hai jab user ne ad poora dekha
+            if (result?.done) {
+                lastAdAt = Date.now();
+                await claimAdReward();
+            }
+        } catch (result) {
+            console.warn("[Adsgram] show rejected:", result);
+            if (result && result.error === false && result.done === false) {
+                showToast("⚠️ Reward ke liye ad poora dekhein");
+            } else {
+                const desc = result?.description || result?.message || "No ads available right now";
+                showAdStatusModal("Abhi koi ad available nahi hai", desc);
+            }
+        } finally {
+            isAdPlaying = false;
+        }
+    }
+
+    async function claimAdReward() {
+        try {
+            const data = await api("/api/ad/claim");
+            applyState(data);
+            if (data.credited) {
+                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
+                showToast(`🎉 Ad watched! +$${money(data.amount)} credited!`);
+            } else if (data.reason === "server_callback") {
+                // Adsgram server callback thodi der me aata hai
+                showToast("⏳ Reward verify ho raha hai...");
+                setTimeout(() => loadState(), 3000);
+            }
+        } catch (err) {
+            if (err?.user) applyState(err);
+            const r = err?.reason;
+            if (r === "daily_limit") showToast("⏳ Daily ad limit reached!");
+            else if (r === "cooldown") showToast("⏳ Thoda ruk kar agla ad dekhein");
+            else showToast("⚠️ Reward save nahi hua, network check karein");
+        }
+    }
+
+    function showAdStatusModal(title, desc) {
+        document.getElementById("adStatusTitle").textContent = title;
+        const msg = document.getElementById("adStatusMsg");
+        msg.textContent = "";
+        const b = document.createElement("div");
+        b.innerHTML = `<b>Reason:</b> `;
+        const span = document.createElement("span");
+        span.style.color = "#f59e0b";
+        span.textContent = desc;
+        b.appendChild(span);
+        msg.appendChild(b);
+        if (isAdmin) {
+            const a = document.createElement("div");
+            a.style.marginTop = "8px";
+            a.textContent = `Admin info → Block: ${adsgramCfg.blockId} • Mode: ${adsgramCfg.debug ? "TEST (debug)" : "LIVE"}`;
+            msg.appendChild(a);
+        }
+        document.getElementById("adStatusModal").style.display = "flex";
+    }
+
+    function closeAdStatusModal() {
+        document.getElementById("adStatusModal").style.display = "none";
+    }
+
+    // Eruda Mobile DevTools (on-demand load, sab users ke liye load nahi hota)
+    let isErudaLoaded = false;
+    function toggleErudaConsole() {
+        if (isErudaLoaded && window.eruda) {
+            window.eruda.destroy();
+            isErudaLoaded = false;
+            showToast("🛠 Mobile Console Closed");
+            return;
+        }
+        const start = () => { window.eruda.init(); isErudaLoaded = true; showToast("🛠 Mobile Console Opened!"); };
+        if (window.eruda) return start();
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/eruda";
+        s.onload = start;
+        document.head.appendChild(s);
+    }
+
+    // ==========================================
+    // 5. TASKS
+    // ==========================================
+    const openedTasks = {};
+
+    function renderTasks() {
+        const list = document.getElementById("tasksList");
+        if (!list) return;
+        list.replaceChildren();
+        tasks.forEach((t) => {
+            const done = (userState.tasksDone || []).includes(t.id);
+            const card = document.createElement("div");
+            card.className = "task-card";
+            card.innerHTML = `
+                <div class="task-left">
+                    <div class="task-icon"></div>
+                    <div>
+                        <div class="task-title"></div>
+                        <div class="task-reward">+$${money(appSettings.taskReward)} Reward</div>
+                    </div>
+                </div>`;
+            card.querySelector(".task-icon").textContent = t.icon;
+            card.querySelector(".task-title").textContent = t.title;
+            const btn = document.createElement("button");
+            btn.className = "btn-task-claim" + (done ? " claimed" : "");
+            btn.id = `task${t.id}Btn`;
+            btn.textContent = done ? "✓ Done" : (openedTasks[t.id] ? "Verify" : "Start");
+            btn.onclick = () => claimTask(t);
+            card.appendChild(btn);
+            list.appendChild(card);
+        });
+    }
+
+    function openExternal(url) {
+        if (!url) return;
+        if (tg && /^https:\/\/t\.me\//.test(url) && tg.openTelegramLink) tg.openTelegramLink(url);
+        else if (tg?.openLink) tg.openLink(url);
+        else window.open(url, "_blank");
+    }
+
+    async function claimTask(t) {
+        if ((userState.tasksDone || []).includes(t.id)) {
+            showToast("✅ Task already completed!");
+            return;
+        }
+        if (!openedTasks[t.id]) {
+            openedTasks[t.id] = Date.now();
+            openExternal(t.url);
+            renderTasks();
+            showToast("Task complete karke wapas aayein aur Verify dabayein");
+            return;
+        }
+        if (Date.now() - openedTasks[t.id] < 5000) {
+            showToast("⏳ Pehle task complete karein");
+            return;
+        }
+        try {
+            const data = await api("/api/task/claim", { taskId: t.id });
+            applyState(data);
+            showToast(data.credited ? `🎉 Task completed! +$${money(data.amount)} credited!` : "✅ Task already completed!");
+        } catch (err) {
+            if (err?.error === "not_joined") showToast("⚠️ Pehle channel join karein, phir Verify");
+            else showToast("⚠️ Verify nahi ho paya, dobara try karein");
+        }
+    }
+
+    // ==========================================
+    // 6. WITHDRAWAL
+    // ==========================================
+    let selectedMethod = "USDT TRC20";
+
+    function selectMethod(method, label, placeholder, elem) {
+        selectedMethod = method;
+        document.querySelectorAll(".method-tab").forEach(m => m.classList.remove("active"));
+        elem.classList.add("active");
+        document.getElementById("walletFieldLabel").textContent = method === "PayPal" ? "PAYPAL EMAIL" : (method === "Mobile Top-Up" ? "PHONE NUMBER" : "WALLET ADDRESS");
+        document.getElementById("walletAddressInput").placeholder = placeholder;
+        document.getElementById("walletFieldHelp").textContent = label;
+    }
+
+    let isSubmittingWithdraw = false;
+    async function submitWithdrawalRequest() {
+        if (isSubmittingWithdraw) return;
+        const amt = parseFloat(document.getElementById("withdrawAmountInput").value);
+        const address = document.getElementById("walletAddressInput").value.trim();
+
+        if (!requirements.balance) return showToast(`⚠️ Min $${money(appSettings.minWithdrawal)} balance chahiye`);
+        if (!requirements.invites) return showToast(`⚠️ ${appSettings.requiredInvites} friends invite karein (abhi ${userState.friendsInvited})`);
+        if (!requirements.tasks) return showToast("⚠️ Pehle saare tasks complete karein");
+        if (!requirements.ads) return showToast(`⚠️ ${appSettings.requiredAds} ads dekhein (abhi ${userState.totalAdsWatched})`);
+        if (!amt || amt < appSettings.minWithdrawal) return showToast(`⚠️ Minimum withdrawal is $${money(appSettings.minWithdrawal)}`);
+        if (amt > userState.balance) return showToast(`⚠️ Insufficient balance! ($${money(userState.balance)} available)`);
+        if (!address) return showToast("⚠️ Please enter your wallet / payment address!");
+
+        isSubmittingWithdraw = true;
+        try {
+            const data = await api("/api/withdraw", { amount: amt, method: selectedMethod, address });
+            applyState(data);
+            showToast(`🚀 Withdrawal #${data.withdrawalId} submitted!`);
+            document.getElementById("withdrawAmountInput").value = "";
+            document.getElementById("walletAddressInput").value = "";
+        } catch (err) {
+            if (err?.user) applyState(err);
+            const map = {
+                requirements: "⚠️ Requirements complete nahi hain",
+                below_min: "⚠️ Amount minimum se kam hai",
+                no_address: "⚠️ Address daalein",
+                insufficient_balance: "⚠️ Balance kam hai"
+            };
+            showToast(map[err?.error] || "⚠️ Request fail hui, dobara try karein");
+        } finally {
+            isSubmittingWithdraw = false;
+        }
+    }
+
+    // ==========================================
+    // 7. NAVIGATION / REFERRAL
+    // ==========================================
+    function switchSection(secId) {
+        document.querySelectorAll(".chip-btn").forEach(btn => btn.classList.remove("active"));
+        document.querySelectorAll(".page-section").forEach(sec => sec.classList.remove("active"));
+        const targetBtn = document.querySelector(`.chip-btn[data-sec="${secId}"]`);
+        if (targetBtn) targetBtn.classList.add("active");
+        const targetSec = document.getElementById(`sec-${secId}`);
+        if (targetSec) targetSec.classList.add("active");
+        if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+    }
+
+    function copyReferralLink() {
+        const link = document.getElementById("refLinkText").textContent;
+        const done = () => showToast("📋 Referral link copied to clipboard!");
+        if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(link).then(done).catch(() => fallbackCopy(link, done));
+        } else {
+            fallbackCopy(link, done);
+        }
+    }
+    function fallbackCopy(text, cb) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); cb(); } catch (e) { showToast(text); }
+        ta.remove();
+    }
+    function shareReferralLink() {
+        const link = document.getElementById("refLinkText").textContent;
+        const text = "Join Payjust +$ and earn rewards daily!";
+        openExternal(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+    }
+
+    // ==========================================
+    // 8. ADMIN MODAL (server par save hota hai -> sab users par apply)
+    // ==========================================
+    function openAdminModal() {
+        document.getElementById("admAdReward").value = appSettings.adReward;
+        document.getElementById("admDailyLimit").value = appSettings.dailyAdLimit;
+        document.getElementById("admRefReward").value = appSettings.refReward;
+        document.getElementById("admMinWithdraw").value = appSettings.minWithdrawal;
+        document.getElementById("admReqInvites").value = appSettings.requiredInvites;
+        document.getElementById("admReqAds").value = appSettings.requiredAds;
+        document.getElementById("admBlockId").value = adsgramCfg.blockId || "";
+        document.getElementById("adminModal").style.display = "flex";
+    }
+
+    function closeAdminModal() {
+        document.getElementById("adminModal").style.display = "none";
+    }
+
+    async function saveAdminSettings() {
+        const settings = {
+            adReward: document.getElementById("admAdReward").value,
+            dailyAdLimit: document.getElementById("admDailyLimit").value,
+            refReward: document.getElementById("admRefReward").value,
+            minWithdrawal: document.getElementById("admMinWithdraw").value,
+            requiredInvites: document.getElementById("admReqInvites").value,
+            requiredAds: document.getElementById("admReqAds").value,
+            adsgramBlockId: document.getElementById("admBlockId").value.trim()
+        };
+        try {
+            const data = await api("/api/admin/settings", { settings });
+            applyState(data);
+            closeAdminModal();
+            showToast("✅ Settings saved for all users!");
+        } catch (err) {
+            showToast(`⚠️ Save failed: ${err?.error || "network"}`);
+        }
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById("toast");
+        toast.textContent = msg;
+        toast.className = "toast show";
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(() => { toast.className = "toast"; }, 2800);
+    }
+
+    // App wapas foreground me aaye to fresh state (referrals etc.)
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible" && initData && API_BASE) loadState();
+    });
+
+    // Initial render + load
+    renderUI();
+    loadState();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+plugins = []
+headers = []
+redirects = []
+
+[functions]
+
+[functions."*"]
+
+[build]
+publish = "/Users/ottmk7/.gemini/antigravity-ide/scratch/telegram-rewards-bot/webapp"
+publishOrigin = "default"
+base = "/Users/ottmk7/.gemini/antigravity-ide/scratch/telegram-rewards-bot/webapp"
+
+[build.environment]
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
