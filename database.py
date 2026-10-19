@@ -117,6 +117,10 @@ def init_db():
         "required_invites": str(config.REQUIRED_INVITES),
         "required_ads": str(config.REQUIRED_ADS),
         "adsgram_block_id": str(config.ADSGRAM_BLOCK_ID),
+        "task_1_url": config.TASKS[0]["url"] if config.TASKS else "https://t.me/Payjust_bot",
+        "task_1_chat": config.TASKS[0].get("chat") or "",
+        "task_4_url": config.TASKS[-1]["url"] if len(config.TASKS) > 1 else "https://t.me/Payjust_bot",
+        "task_4_chat": config.TASKS[-1].get("chat") or "",
     }
     for k, v in defaults.items():
         cursor.execute("INSERT OR IGNORE INTO app_settings (key, value) VALUES (?, ?)", (k, v))
@@ -135,6 +139,25 @@ ALLOWED_SETTINGS = {
     "required_invites": int,
     "required_ads": int,
     "adsgram_block_id": str,
+    "task_1_url": str,
+    "task_1_chat": str,
+    "task_4_url": str,
+    "task_4_chat": str,
+}
+
+FALLBACK_SETTINGS = {
+    "ad_reward": config.AD_REWARD_USD,
+    "referral_reward": config.REFERRAL_REWARD_USD,
+    "task_reward": config.TASK_REWARD_USD,
+    "daily_ad_limit": config.DAILY_AD_LIMIT,
+    "min_withdrawal": config.MIN_WITHDRAWAL_USD,
+    "required_invites": config.REQUIRED_INVITES,
+    "required_ads": config.REQUIRED_ADS,
+    "adsgram_block_id": str(config.ADSGRAM_BLOCK_ID),
+    "task_1_url": "https://t.me/Payjust_bot",
+    "task_1_chat": "",
+    "task_4_url": "https://t.me/Payjust_bot",
+    "task_4_chat": "",
 }
 
 
@@ -144,7 +167,7 @@ def get_setting(key: str, default: Any = None) -> str:
     cursor.execute("SELECT value FROM app_settings WHERE key = ?", (key,))
     row = cursor.fetchone()
     conn.close()
-    return row["value"] if row else str(default)
+    return row["value"] if row else str(default if default is not None else FALLBACK_SETTINGS.get(key, ""))
 
 
 def set_setting(key: str, value: Any):
@@ -171,10 +194,31 @@ def get_typed_settings() -> Dict[str, Any]:
     raw = get_all_settings()
     out: Dict[str, Any] = {}
     for k, caster in ALLOWED_SETTINGS.items():
+        val = raw.get(k)
         try:
-            out[k] = caster(raw.get(k))
+            parsed = caster(val) if val not in (None, "") else FALLBACK_SETTINGS.get(k)
+            if isinstance(parsed, float) and not math.isfinite(parsed):
+                parsed = FALLBACK_SETTINGS.get(k)
+            out[k] = parsed
         except (TypeError, ValueError):
-            out[k] = None
+            out[k] = FALLBACK_SETTINGS.get(k)
+    return out
+
+
+def get_active_tasks() -> List[Dict[str, Any]]:
+    s = get_all_settings()
+    out = []
+    for t in config.TASKS:
+        tid = t["id"]
+        url = (s.get(f"task_{tid}_url") or t.get("url") or "https://t.me/Payjust_bot").strip()
+        chat = (s.get(f"task_{tid}_chat") or t.get("chat") or "").strip() or None
+        out.append({
+            "id": tid,
+            "icon": t["icon"],
+            "title": t["title"],
+            "url": url,
+            "chat": chat,
+        })
     return out
 
 
@@ -191,9 +235,28 @@ def get_user(user_id: int) -> Optional[Dict[str, Any]]:
 def register_user(user_id: int, first_name: str, username: str, referrer_id: Optional[int] = None) -> bool:
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT user_id FROM users WHERE user_id = ?", (user_id,))
+    cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
     existing = cursor.fetchone()
     if existing:
+        if first_name and first_name != "User":
+            cursor.execute(
+                "UPDATE users SET first_name = ?, username = ? WHERE user_id = ?",
+                (first_name, username or existing["username"] or "", user_id),
+            )
+        # Agar user ne pehle Mini App khol liya tha (ensure_user) aur ab /start <referrer_id> dabaya hai:
+        if (
+            referrer_id
+            and referrer_id != user_id
+            and not existing["referred_by"]
+            and (existing["ads_watched_total"] or 0) == 0
+            and (existing["tasks_completed"] or 0) == 0
+            and (existing["total_referrals"] or 0) == 0
+        ):
+            cursor.execute("UPDATE users SET referred_by = ? WHERE user_id = ?", (referrer_id, user_id))
+            conn.commit()
+            conn.close()
+            return True
+        conn.commit()
         conn.close()
         return False
 
@@ -364,15 +427,19 @@ def get_user_withdrawals(user_id: int, limit: int = 5) -> List[Dict[str, Any]]:
             "SELECT id, amount, method, payment_details AS address, status, created_at FROM withdrawals WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
             (user_id, limit),
         ).fetchall()
-        return [dict(r) for r in rows]
+        items = [dict(r) for r in rows]
     except sqlite3.OperationalError:
         rows = conn.execute(
             "SELECT id, amount, payment_details AS address, status, created_at FROM withdrawals WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
             (user_id, limit),
         ).fetchall()
-        return [{**dict(r), "method": "USDT"} for r in rows]
+        items = [{**dict(r), "method": "USDT"} for r in rows]
     finally:
         conn.close()
+    for it in items:
+        if str(it.get("status") or "").upper() == "APPROVED":
+            it["status"] = "PAID"
+    return items
 
 
 def get_pending_withdrawals(limit: int = 10) -> List[Dict[str, Any]]:

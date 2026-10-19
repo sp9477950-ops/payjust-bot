@@ -237,6 +237,7 @@ def _admin_panel():
         [InlineKeyboardButton("✏️ Set Task Reward", callback_data="adm_set_task_reward"), InlineKeyboardButton("✏️ Set Daily Limit", callback_data="adm_set_daily_ad_limit")],
         [InlineKeyboardButton("✏️ Set Min Withdraw", callback_data="adm_set_min_withdrawal"), InlineKeyboardButton("✏️ Set Req Invites", callback_data="adm_set_required_invites")],
         [InlineKeyboardButton("✏️ Set Req Ads", callback_data="adm_set_required_ads"), InlineKeyboardButton("✏️ Set Adsgram Block", callback_data="adm_set_adsgram_block_id")],
+        [InlineKeyboardButton("🔗 Set Channel URL", callback_data="adm_set_task_1_url"), InlineKeyboardButton("🔗 Set Group URL", callback_data="adm_set_task_4_url")],
         [InlineKeyboardButton("💾 Backup DB", callback_data="adm_backup_db"), InlineKeyboardButton("🔄 Refresh Stats", callback_data="adm_refresh")],
     ])
     return text, kb

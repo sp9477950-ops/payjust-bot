@@ -90,6 +90,7 @@ def build_state(user_id: int, bot_username: str):
     u = db.get_user(user_id)
     s = db.get_typed_settings()
     tasks_done = _active_tasks_done(user_id)
+    active_tasks = db.get_active_tasks()
     return {
         "ok": True,
         "user": {
@@ -117,7 +118,7 @@ def build_state(user_id: int, bot_username: str):
             "debug": config.ADSGRAM_DEBUG,
             "useRewardUrl": config.ADSGRAM_USE_REWARD_URL,
         },
-        "tasks": [{k: t[k] for k in ("id", "icon", "title", "url")} for t in config.TASKS],
+        "tasks": [{k: t[k] for k in ("id", "icon", "title", "url")} for t in active_tasks],
         "requirements": _requirements(u, s, tasks_done),
         "botUsername": bot_username,
         "isAdmin": user_id == config.ADMIN_ID,
@@ -173,7 +174,7 @@ async def task_claim(request):
         task_id = int(body.get("taskId"))
     except (TypeError, ValueError):
         return _json({"ok": False, "error": "bad_task"}, 400)
-    task = next((t for t in config.TASKS if t["id"] == task_id), None)
+    task = next((t for t in db.get_active_tasks() if t["id"] == task_id), None)
     if not task:
         return _json({"ok": False, "error": "bad_task"}, 400)
 
@@ -313,10 +314,19 @@ async def cors_middleware(request, handler):
 
 
 def create_api_app(bot, bot_username: str) -> web.Application:
+    import os
     app = web.Application(middlewares=[cors_middleware])
     app["bot"] = bot
     app["bot_username"] = bot_username
+
+    async def serve_webapp(_request):
+        html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "webapp", "index.html")
+        resp = web.FileResponse(html_path)
+        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        return resp
+
     app.router.add_get("/", health)
+    app.router.add_get("/app", serve_webapp)
     app.router.add_get("/api/health", health)
     app.router.add_post("/api/state", state)
     app.router.add_post("/api/ad/claim", ad_claim)
