@@ -65,12 +65,8 @@ API_PORT = int(os.getenv("PORT") or os.getenv("API_PORT") or 8080)
 # Render sets RENDER_EXTERNAL_URL automatically (e.g. https://payjust-backend.onrender.com)
 API_PUBLIC_URL = os.getenv("API_PUBLIC_URL", os.getenv("RENDER_EXTERNAL_URL", "https://payjust-bot.onrender.com")).rstrip("/")
 
-# Mini App / Web App URL (served directly from Render /app so Netlify limits/404 never affect the bot)
-_raw_webapp = os.getenv("WEBAPP_URL", "").strip()
-if not _raw_webapp or "netlify.app" in _raw_webapp:
-    _WEBAPP_BASE = f"{API_PUBLIC_URL}/app"
-else:
-    _WEBAPP_BASE = _raw_webapp
+# Mini App / Web App URL (must match Adsgram Platform App URL https://pay-just.netlify.app for blockId 53853)
+_WEBAPP_BASE = "https://pay-just.netlify.app"
 
 
 def build_webapp_url() -> str:
