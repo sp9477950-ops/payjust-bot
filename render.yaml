@@ -5,11 +5,8 @@ services:
     region: singapore
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python bot.py
-    healthCheckPath: /api/health
+    startCommand: python3 -u bot.py
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.8
       - key: BOT_TOKEN
         value: 8571462279:AAHn9wmFNiububdC_LKlplGNmTfqjQ2vptM
       - key: ADMIN_ID

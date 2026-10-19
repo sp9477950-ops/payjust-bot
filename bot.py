@@ -352,38 +352,55 @@ async def run():
     # Chat ke niche permanent "Open App" menu button
     try:
         await app.bot.set_chat_menu_button(
-            menu_button=MenuButtonWebApp(text="Open App", web_app=WebAppInfo(url=config.WEBAPP_URL))
-        )
-    except Exception as e:
-        logger.warning(f"Menu button set failed: {e}")
-
-    # API server
+    # 1. Start API server FIRST so Render port detection passes immediately
     api_app = create_api_app(app.bot, bot_username)
     runner = web.AppRunner(api_app)
     await runner.setup()
     site = web.TCPSite(runner, config.API_HOST, config.API_PORT)
     await site.start()
-    logger.info(f"🌐 API listening on http://{config.API_HOST}:{config.API_PORT}  (public: {config.API_PUBLIC_URL or 'NOT SET'})")
-    logger.info(f"📱 WebApp URL: {config.WEBAPP_URL}")
+    print(f"🌐 API listening on http://{config.API_HOST}:{config.API_PORT} (public: {config.API_PUBLIC_URL or 'NOT SET'})", flush=True)
+    print(f"📱 WebApp URL: {config.WEBAPP_URL}", flush=True)
 
+    # 2. Set permanent menu button
+    try:
+        await app.bot.set_chat_menu_button(
+            menu_button=MenuButtonWebApp(text="Open App", web_app=WebAppInfo(url=config.WEBAPP_URL))
+        )
+        print("✅ Menu button configured", flush=True)
+    except Exception as e:
+        logger.warning(f"Menu button set failed: {e}")
+
+    # 3. Start Telegram Polling
     await app.start()
     await app.updater.start_polling(drop_pending_updates=False)
-    print(f"🤖 @{bot_username} running (bot + API). Press Ctrl+C to stop.")
+    print(f"🤖 @{bot_username} running (bot + API). Press Ctrl+C to stop.", flush=True)
 
     try:
         await asyncio.Event().wait()
     finally:
-        await app.updater.stop()
-        await app.stop()
-        await app.shutdown()
+        print("Stopping bot and API server...", flush=True)
+        try:
+            await app.updater.stop()
+            await app.stop()
+            await app.shutdown()
+        except Exception:
+            pass
         await runner.cleanup()
 
 
 def main():
+    import sys
+    print(">>> Starting Payjust Bot process...", flush=True)
     try:
         asyncio.run(run())
     except (KeyboardInterrupt, SystemExit):
-        pass
+        print(">>> Bot process stopped gracefully.", flush=True)
+    except Exception as e:
+        import traceback
+        print(">>> FATAL ERROR IN BOT PROCESS:", file=sys.stderr, flush=True)
+        traceback.print_exc(file=sys.stderr)
+        sys.stderr.flush()
+        sys.exit(1)
 
 
 if __name__ == "__main__":
