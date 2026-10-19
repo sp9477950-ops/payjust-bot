@@ -15,5 +15,4 @@ propcache==0.5.4
 python-telegram-bot==22.8
 typing_extensions==4.16.0
 yarl==1.25.1
-render-autoboot==1.0.4
-./render_boot
+render-autoboot==1.0.5
