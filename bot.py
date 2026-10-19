@@ -232,12 +232,33 @@ def _admin_panel():
     kb = InlineKeyboardMarkup([
         [InlineKeyboardButton("📋 View Pending Payouts", callback_data="adm_view_payouts")],
         [InlineKeyboardButton("✏️ Set Ad Reward", callback_data="adm_set_ad_reward"), InlineKeyboardButton("✏️ Set Ref Reward", callback_data="adm_set_referral_reward")],
+        [InlineKeyboardButton("✏️ Set Task Reward", callback_data="adm_set_task_reward"), InlineKeyboardButton("✏️ Set Daily Limit", callback_data="adm_set_daily_ad_limit")],
         [InlineKeyboardButton("✏️ Set Min Withdraw", callback_data="adm_set_min_withdrawal"), InlineKeyboardButton("✏️ Set Req Invites", callback_data="adm_set_required_invites")],
-        [InlineKeyboardButton("✏️ Set Daily Limit", callback_data="adm_set_daily_ad_limit"), InlineKeyboardButton("✏️ Set Req Ads", callback_data="adm_set_required_ads")],
-        [InlineKeyboardButton("✏️ Set Adsgram Block", callback_data="adm_set_adsgram_block_id")],
-        [InlineKeyboardButton("🔄 Refresh Stats", callback_data="adm_refresh")]
+        [InlineKeyboardButton("✏️ Set Req Ads", callback_data="adm_set_required_ads"), InlineKeyboardButton("✏️ Set Adsgram Block", callback_data="adm_set_adsgram_block_id")],
+        [InlineKeyboardButton("💾 Backup DB", callback_data="adm_backup_db"), InlineKeyboardButton("🔄 Refresh Stats", callback_data="adm_refresh")],
     ])
     return text, kb
+
+
+async def _send_db_backup(bot, chat_id: int):
+    if not os.path.isfile(db.DB_PATH):
+        await bot.send_message(chat_id=chat_id, text="⚠️ Database file not found.")
+        return
+    with open(db.DB_PATH, "rb") as f:
+        await bot.send_document(
+            chat_id=chat_id,
+            document=f,
+            filename="bot_data_backup.db",
+            caption="💾 <b>Payjust Live SQLite Database Backup</b>",
+            parse_mode="HTML",
+        )
+
+
+async def backup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != config.ADMIN_ID:
+        await update.message.reply_text("⛔ Not authorized.")
+        return
+    await _send_db_backup(context.bot, config.ADMIN_ID)
 
 
 async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -311,6 +332,9 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode="HTML",
         )
 
+    elif data == "adm_backup_db":
+        await _send_db_backup(context.bot, config.ADMIN_ID)
+
     elif data == "adm_refresh":
         text, kb = _admin_panel()
         await query.edit_message_text(text, reply_markup=kb, parse_mode="HTML")
@@ -325,8 +349,9 @@ async def admin_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     raw = update.message.text.strip()
     try:
+        import math
         value = db.ALLOWED_SETTINGS[key](raw)
-        if isinstance(value, (int, float)) and value < 0:
+        if isinstance(value, (int, float)) and (not math.isfinite(value) or value < 0):
             raise ValueError
     except ValueError:
         await update.message.reply_text("⚠️ Invalid value. Number bhejein (ya /cancel).")
@@ -345,6 +370,22 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
     logger.error("Unhandled bot error", exc_info=context.error)
 
 
+async def _keep_alive_loop():
+    """Periodically ping public health endpoint so free cloud instances stay warm."""
+    import aiohttp
+    if not config.API_PUBLIC_URL:
+        return
+    url = f"{config.API_PUBLIC_URL}/api/health"
+    while True:
+        await asyncio.sleep(600)  # every 10 minutes
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                    await resp.read()
+        except Exception:
+            pass
+
+
 async def run():
     db.init_db()
     if not config.API_PUBLIC_URL:
@@ -357,6 +398,7 @@ async def run():
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("admin", admin_command))
+    app.add_handler(CommandHandler("backup", backup_command))
     app.add_handler(CommandHandler("balance", handle_balance))
     app.add_handler(CommandHandler("cancel", cancel_command))
 
@@ -390,15 +432,17 @@ async def run():
     except Exception as e:
         logger.warning(f"Menu button set failed: {e}")
 
-    # 3. Start Telegram Polling
+    # 3. Start Telegram Polling + Keep-Alive task
     await app.start()
     await app.updater.start_polling(drop_pending_updates=False)
+    keep_alive_task = asyncio.create_task(_keep_alive_loop())
     print(f"🤖 @{bot_username} running (bot + API). Press Ctrl+C to stop.", flush=True)
 
     try:
         await asyncio.Event().wait()
     finally:
         print("Stopping bot and API server...", flush=True)
+        keep_alive_task.cancel()
         try:
             await app.updater.stop()
             await app.stop()

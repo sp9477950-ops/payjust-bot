@@ -977,6 +977,18 @@
                 </div>
             </div>
         </div>
+
+        <!-- Recent Withdrawals History -->
+        <div class="req-box" id="withdrawHistoryBox" style="display:none;">
+            <div class="req-header-row">
+                <div class="req-icon-title">🧾</div>
+                <div>
+                    <div class="req-title">Recent Withdrawals</div>
+                    <div class="req-sub">Live status of your recent payout requests</div>
+                </div>
+            </div>
+            <div class="req-list" id="withdrawHistoryList"></div>
+        </div>
     </div>
 
 </div>
@@ -1005,6 +1017,10 @@
         <div class="form-group">
             <label class="form-label">Referral Reward ($)</label>
             <input class="form-input" id="admRefReward" type="number" step="0.01" value="0.75">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Task Reward ($)</label>
+            <input class="form-input" id="admTaskReward" type="number" step="0.01" value="0.10">
         </div>
         <div class="form-group">
             <label class="form-label">Min Withdrawal ($)</label>
@@ -1233,6 +1249,58 @@
 
         renderAdStatus();
         renderTasks();
+        renderWithdrawals();
+    }
+
+    function renderWithdrawals() {
+        const box = document.getElementById("withdrawHistoryBox");
+        const list = document.getElementById("withdrawHistoryList");
+        if (!box || !list) return;
+        const items = userState.withdrawals || [];
+        if (!items.length) {
+            box.style.display = "none";
+            list.replaceChildren();
+            return;
+        }
+        box.style.display = "block";
+        list.replaceChildren();
+        items.forEach((w) => {
+            const row = document.createElement("div");
+            row.className = "req-row";
+            const st = String(w.status || "pending").toLowerCase();
+            const isPaid = st === "paid";
+            const isRejected = st === "rejected";
+            const iconCls = isPaid ? "icon-done" : "icon-pending";
+            const iconTxt = isPaid ? "✓" : (isRejected ? "✕" : "⏳");
+            const badgeCls = isPaid ? "badge-done" : "badge-pending";
+            const badgeTxt = isPaid ? "Paid" : (isRejected ? "Refunded" : "Pending");
+
+            const left = document.createElement("div");
+            left.className = "req-left";
+            const icon = document.createElement("div");
+            icon.className = `req-status-icon ${iconCls}`;
+            icon.textContent = iconTxt;
+            const info = document.createElement("div");
+            info.className = "req-text";
+            const b = document.createElement("b");
+            b.textContent = `#${w.id} • $${money(w.amount)} (${w.method})`;
+            const sub = document.createElement("div");
+            sub.style.fontSize = "11px";
+            sub.style.color = "#64748b";
+            sub.textContent = w.address || "";
+            info.appendChild(b);
+            info.appendChild(sub);
+            left.appendChild(icon);
+            left.appendChild(info);
+
+            const badge = document.createElement("span");
+            badge.className = `badge-pill ${badgeCls}`;
+            badge.textContent = badgeTxt;
+
+            row.appendChild(left);
+            row.appendChild(badge);
+            list.appendChild(row);
+        });
     }
 
     function renderAdStatus() {
@@ -1548,6 +1616,7 @@
         document.getElementById("admAdReward").value = appSettings.adReward;
         document.getElementById("admDailyLimit").value = appSettings.dailyAdLimit;
         document.getElementById("admRefReward").value = appSettings.refReward;
+        document.getElementById("admTaskReward").value = appSettings.taskReward;
         document.getElementById("admMinWithdraw").value = appSettings.minWithdrawal;
         document.getElementById("admReqInvites").value = appSettings.requiredInvites;
         document.getElementById("admReqAds").value = appSettings.requiredAds;
@@ -1564,6 +1633,7 @@
             adReward: document.getElementById("admAdReward").value,
             dailyAdLimit: document.getElementById("admDailyLimit").value,
             refReward: document.getElementById("admRefReward").value,
+            taskReward: document.getElementById("admTaskReward").value,
             minWithdrawal: document.getElementById("admMinWithdraw").value,
             requiredInvites: document.getElementById("admReqInvites").value,
             requiredAds: document.getElementById("admReqAds").value,

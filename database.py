@@ -1,3 +1,4 @@
+import math
 import os
 import sqlite3
 import time
@@ -5,8 +6,8 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List, Tuple
 import config
 
-# Absolute path so DB same rahe chahe bot kisi bhi folder se start ho
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bot_data.db")
+# Absolute path so DB same rahe chahe bot kisi bhi folder se start ho (can be overridden by DB_PATH env var)
+DB_PATH = os.getenv("DB_PATH") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "bot_data.db")
 
 
 def get_connection():
@@ -316,11 +317,13 @@ def complete_task(user_id: int, task_id: int, reward: float) -> bool:
 
 # ---------------- WITHDRAWALS ----------------
 def create_withdrawal(user_id: int, amount: float, method: str, payment_details: str) -> Optional[int]:
+    if not isinstance(amount, (int, float)) or not math.isfinite(amount) or amount <= 0:
+        return None
     conn = get_connection()
     try:
         conn.execute("BEGIN IMMEDIATE")
         row = conn.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,)).fetchone()
-        if not row or row["balance"] < amount:
+        if not row or not math.isfinite(row["balance"]) or row["balance"] < amount:
             conn.rollback()
             return None
 

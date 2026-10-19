@@ -12,6 +12,7 @@ import hmac
 import html
 import json
 import logging
+import math
 import time
 from urllib.parse import parse_qsl
 
@@ -190,7 +191,10 @@ async def withdraw(request):
     user_id, tg_user, body = await _auth(request)
     bot = request.app["bot"]
     try:
-        amount = round(float(body.get("amount", 0)), 2)
+        raw_amt = float(body.get("amount", 0))
+        if not math.isfinite(raw_amt) or raw_amt <= 0:
+            raise ValueError
+        amount = round(raw_amt, 2)
     except (TypeError, ValueError):
         return _json({"ok": False, "error": "bad_amount"}, 400)
     method = str(body.get("method", "USDT TRC20"))[:40]
@@ -274,7 +278,10 @@ async def admin_settings(request):
     for js_key, db_key in _ADMIN_KEY_MAP.items():
         if js_key in incoming and incoming[js_key] not in (None, ""):
             try:
-                db.set_setting(db_key, db.ALLOWED_SETTINGS[db_key](incoming[js_key]))
+                val = db.ALLOWED_SETTINGS[db_key](incoming[js_key])
+                if isinstance(val, (int, float)) and (not math.isfinite(val) or val < 0):
+                    raise ValueError
+                db.set_setting(db_key, val)
             except (TypeError, ValueError):
                 return _json({"ok": False, "error": f"bad_value:{js_key}"}, 400)
     return _json(build_state(user_id, request.app["bot_username"]))
