@@ -1,3 +1,5 @@
+import sys
+print("=== [RENDER BOOT] Starting bot.py with Python:", sys.executable, flush=True)
 import asyncio
 import logging
 import html
