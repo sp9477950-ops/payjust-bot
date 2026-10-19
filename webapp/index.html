@@ -1104,10 +1104,14 @@
     // API URL bot se query param (?api=...) me aata hai. Ek baar mil gaya to yaad rakhte hain.
     // Agar aap API ka permanent URL jaante hain to DEFAULT_API me daal dein.
     const DEFAULT_API = "https://payjust-bot.onrender.com";
+    const isStaleApiUrl = (u) => !u || /payjust-backend\.onrender\.com|trycloudflare\.com|localhost|127\.0\.0\.1/i.test(u);
     const urlParams = new URLSearchParams(window.location.search);
-    const apiParam = urlParams.get("api");
+    const rawApiParam = urlParams.get("api");
+    const apiParam = isStaleApiUrl(rawApiParam) ? null : rawApiParam;
+    const savedApi = localStorage.getItem("payjust_api");
+    if (isStaleApiUrl(savedApi)) localStorage.removeItem("payjust_api");
     if (apiParam) localStorage.setItem("payjust_api", apiParam);
-    const API_BASE = (apiParam || localStorage.getItem("payjust_api") || DEFAULT_API).replace(/\/+$/, "");
+    let API_BASE = (apiParam || (!isStaleApiUrl(savedApi) ? savedApi : null) || DEFAULT_API).replace(/\/+$/, "");
 
     // Header user info
     document.getElementById("userName").textContent = firstName;
@@ -1135,24 +1139,47 @@
         balance: 0, adsWatchedToday: 0, totalAdsWatched: 0, totalEarnedFromAds: 0,
         friendsInvited: 0, tasksDone: [], withdrawals: []
     };
-    let tasks = [];
-    let adsgramCfg = { blockId: null, debug: false, useRewardUrl: false };
+    let tasks = [
+        { id: 1, icon: "📢", title: "Join Official Telegram", url: "https://t.me/Payjust_bot" },
+        { id: 4, icon: "👥", title: "Join Partner Group", url: "https://t.me/Payjust_bot" }
+    ];
+    let adsgramCfg = { blockId: "53853", debug: false, useRewardUrl: false };
     let requirements = { balance: false, invites: false, tasks: false, ads: false };
     let botUsername = "Payjust_bot";
     let isAdmin = false;
     let lastAdAt = 0;
 
     async function api(path, payload = {}) {
-        if (!API_BASE) throw { error: "no_api" };
-        const res = await fetch(`${API_BASE}${path}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ initData, ...payload })
-        });
-        let data = {};
-        try { data = await res.json(); } catch (e) {}
-        if (!res.ok && !data.user) throw { status: res.status, ...data };
-        return data;
+        if (!API_BASE) API_BASE = DEFAULT_API;
+        let lastErr = null;
+        for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+                const res = await fetch(`${API_BASE}${path}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ initData, ...payload })
+                });
+                let data = {};
+                try { data = await res.json(); } catch (e) {}
+                if (res.status >= 502 && res.status <= 504 && attempt < 2) {
+                    await new Promise(r => setTimeout(r, 1200 * (attempt + 1)));
+                    continue;
+                }
+                if (!res.ok && !data.user) throw { status: res.status, ...data };
+                return data;
+            } catch (err) {
+                lastErr = err;
+                if (err?.status && err.status < 500) throw err;
+                if (API_BASE !== DEFAULT_API) {
+                    API_BASE = DEFAULT_API;
+                    localStorage.setItem("payjust_api", DEFAULT_API);
+                }
+                if (attempt < 2) {
+                    await new Promise(r => setTimeout(r, 1200 * (attempt + 1)));
+                }
+            }
+        }
+        throw lastErr || { error: "network" };
     }
 
     function applyState(data) {
@@ -1669,6 +1696,7 @@
 
     // Initial render + load
     renderUI();
+    initAdsgramController();
     loadState();
 </script>
 
